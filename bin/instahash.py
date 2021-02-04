@@ -34,11 +34,12 @@ class Hashtags():
         Bucket = namedtuple('Bucket', 'min max percent')
         Entry = namedtuple('Entry', 'size max percent')
         entries = [
-            Entry(size='XXL', max=1000000000, percent=3),
-            Entry(size='XL', max=1000000, percent=7),
-            Entry(size='L', max=500000, percent=30),
-            Entry(size='M', max=100000, percent=25),
-            Entry(size='S', max=50000, percent=25),
+            Entry(size='XXXL', max=1000000000, percent=3),
+            Entry(size='XXL', max=1000000, percent=7),
+            Entry(size='XL', max=500000, percent=55),
+            # Entry(size='L', max=100000, percent=25),
+            Entry(size='M', max=50000, percent=25),
+            Entry(size='S', max=20000, percent=10),
             Entry(size='N/A', max=10000, percent=0)
         ]
         entries = sorted(entries, key=attrgetter('max'))
