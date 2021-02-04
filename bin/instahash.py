@@ -183,7 +183,7 @@ def main():
     report(rows, limit=limit)
 
 
-def report(rows, limit=25):
+def report(rows, limit=25, feature_percent=25):
     """Process data.
 
     Args:
@@ -197,18 +197,21 @@ def report(rows, limit=25):
     # Initialize key variables
     results = []
     hashtags = []
-    indexes = range(0, 50, 2)
 
     # Get results for both hashtag types
-    results.extend(FeatureHashtags(rows, limit=limit).rows)
-    results.extend(RegularHashtags(rows, limit=limit).rows)
+    features = FeatureHashtags(rows, limit=limit).rows
+    regulars = RegularHashtags(rows, limit=limit).rows
+
+    results.extend(random.sample(
+        regulars, int(len(regulars) * (1 - (feature_percent / 100)))))
+    results.extend(random.sample(
+        features, int(len(features) * feature_percent / 100)))
 
     # Select alternating tags
-    for index in indexes:
-        if index < len(results):
-            row = results[index]
-            print(row)
-            hashtags.append(row.hashtag)
+    results = sorted(results, key=attrgetter('posts'), reverse=True)
+    for result in results:
+        hashtags.append(result.hashtag)
+        print(result)
 
     print('\n\n{}'.format(' '.join(hashtags)))
 
