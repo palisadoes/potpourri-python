@@ -10,7 +10,6 @@ import csv
 import argparse
 import random
 from operator import attrgetter
-from pprint import pprint
 
 
 class Hashtags():
@@ -156,11 +155,16 @@ def main():
 
     """
     # Initialize key variables
-    limit = 25
     Row = namedtuple('Row', 'hashtag posts feature')
     rows = []
     args = _args()
     filename = os.path.expanduser(args.filename)
+    limit = abs(args.results)
+    percent = abs(args.percent)
+
+    # Add limits to the CLI parameters
+    percent = percent if 0 <= percent <= 100 else 25
+    limit = limit if 10 <= limit < 30 else 25
 
     # Process destination
     if os.path.isfile(filename) is False:
@@ -180,7 +184,7 @@ def main():
             )
 
     # Create report
-    report(rows, limit=limit)
+    report(rows, limit=limit, feature_percent=percent)
 
 
 def report(rows, limit=25, feature_percent=25):
@@ -233,6 +237,18 @@ def _args():
         type=str,
         required=True,
         help='Name of file to process.')
+    parser.add_argument(
+        '--percent',
+        type=int,
+        required=False,
+        default=25,
+        help='Percent of results that are feature accounts.')
+    parser.add_argument(
+        '--results',
+        type=int,
+        required=False,
+        default=25,
+        help='Number of results to return.')
     result = parser.parse_args()
     return result
 
