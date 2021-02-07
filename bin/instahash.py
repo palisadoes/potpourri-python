@@ -10,6 +10,7 @@ import csv
 import argparse
 import random
 from operator import attrgetter
+import textwrap
 
 
 class Hashtags():
@@ -201,6 +202,7 @@ def report(rows, limit=25, feature_percent=25):
     # Initialize key variables
     results = []
     hashtags = []
+    width = 100
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
@@ -217,7 +219,8 @@ def report(rows, limit=25, feature_percent=25):
         hashtags.append(result.hashtag)
         print(result)
 
-    print('\n\n{}'.format(' '.join(hashtags)))
+    output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
+    print('\n\n{}\n'.format('\n'.join(output)))
 
 
 def _args():
