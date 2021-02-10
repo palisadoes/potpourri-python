@@ -94,12 +94,14 @@ Destination directory '{}' does not exist.'''.format(destination))
             (original.width, original.height), Image.ANTIALIAS)
 
         # Set exif metadata to match the original except for the dimensions
-        exif = piexif.load(original.image.info['exif'])
-        exif['0th'][piexif.ImageIFD.ImageWidth] = original.width
-        exif['0th'][piexif.ImageIFD.ImageLength] = original.height
-        exif['0th'][piexif.ImageIFD.Artist] = 'Peter Harrison'
-        exif['0th'][piexif.ImageIFD.Copyright] = (
-            'ALL RIGHTS RESERVED - SIMIYA.COM')
+        found = bool(original.image.info.get('exif'))
+        if found is True:
+            exif = piexif.load(original.image.info['exif'])
+            exif['0th'][piexif.ImageIFD.ImageWidth] = original.width
+            exif['0th'][piexif.ImageIFD.ImageLength] = original.height
+            exif['0th'][piexif.ImageIFD.Artist] = 'Peter Harrison'
+            exif['0th'][piexif.ImageIFD.Copyright] = (
+                'ALL RIGHTS RESERVED - Peter Harrison @ SIMIYA.COM')
 
         # Overlay source image on background and save
         background.paste(
@@ -108,7 +110,10 @@ Destination directory '{}' does not exist.'''.format(destination))
             destination, os.sep, os.path.basename(filepath))
         newfile = newfile.replace('{0}{0}'.format(os.sep), os.sep)
         print('Converting {} to {}'.format(filepath, newfile))
-        background.save(newfile, quality=quality, exif=piexif.dump(exif))
+        if found is True:
+            background.save(newfile, quality=quality, exif=piexif.dump(exif))
+        else:
+            background.save(newfile, quality=quality)
 
         # Close redimensioned image
         original.image.close()

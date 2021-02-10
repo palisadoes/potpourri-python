@@ -220,7 +220,7 @@ def report(rows, limit=25, feature_percent=25):
         print(result)
 
     output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
-    print('\n\n{}\n'.format('\n'.join(output)))
+    print('\n{}{}\n'.format('.\n' * 5, '\n'.join(output)))
 
 
 def _args():
