@@ -9,6 +9,7 @@ from collections import namedtuple
 import argparse
 
 from PIL import Image
+import piexif
 
 
 def main():
@@ -87,19 +88,27 @@ Destination directory '{}' does not exist.'''.format(destination))
             'RGB', (ig_width, ig_width), color='white')
 
         # Resize source image to fit on background
-        dimensions = _new_dimensions(
+        original = _new_dimensions(
             filepath, ig_width=ig_width, border=border)
-        image = dimensions.image.resize(
-            (dimensions.width, dimensions.height), Image.ANTIALIAS)
+        resized = original.image.resize(
+            (original.width, original.height), Image.ANTIALIAS)
+
+        # Set exif metadata to match the original except for the dimensions
+        exif = piexif.load(original.image.info['exif'])
+        exif['0th'][piexif.ImageIFD.ImageWidth] = original.width
+        exif['0th'][piexif.ImageIFD.ImageLength] = original.height
 
         # Overlay source image on background and save
         background.paste(
-            image, (dimensions.hoffset, dimensions.voffset))
+            resized, (original.hoffset, original.voffset))
         newfile = '{}{}Instagram-{}'.format(
             destination, os.sep, os.path.basename(filepath))
         newfile = newfile.replace('{0}{0}'.format(os.sep), os.sep)
         print('Converting {} to {}'.format(filepath, newfile))
-        background.save(newfile, quality=quality)
+        background.save(newfile, quality=quality, exif=piexif.dump(exif))
+
+        # Close redimensioned image
+        original.image.close()
 
 
 def _new_dimensions(filepath, ig_width=1024, border=20):
@@ -116,7 +125,8 @@ def _new_dimensions(filepath, ig_width=1024, border=20):
     """
     # Initialize key variables
     reduction = 1
-    Dimensions = namedtuple('Dimensions', 'width height image hoffset voffset')
+    Dimensions = namedtuple(
+        'Dimensions', 'width height image hoffset voffset')
     inner_width = abs(ig_width) - abs(border)
     shim = int(abs(border) / 2)
 
