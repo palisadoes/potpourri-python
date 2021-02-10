@@ -97,6 +97,9 @@ Destination directory '{}' does not exist.'''.format(destination))
         exif = piexif.load(original.image.info['exif'])
         exif['0th'][piexif.ImageIFD.ImageWidth] = original.width
         exif['0th'][piexif.ImageIFD.ImageLength] = original.height
+        exif['0th'][piexif.ImageIFD.Artist] = 'Peter Harrison'
+        exif['0th'][piexif.ImageIFD.Copyright] = (
+            'ALL RIGHTS RESERVED - SIMIYA.COM')
 
         # Overlay source image on background and save
         background.paste(
