@@ -178,8 +178,8 @@ def main():
         for row in reader:
             rows.append(
                 Row(
-                    hashtag=row['Hashtag'].lower(),
-                    posts=abs(int(row['Posts'].replace(',', ''))),
+                    hashtag=row['Hashtag'].lower().strip(),
+                    posts=abs(int(row['Posts'].strip().replace(',', ''))),
                     feature=bool('f' in row['Type'].lower())
                 )
             )
