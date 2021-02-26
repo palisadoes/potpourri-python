@@ -9,6 +9,7 @@ from collections import namedtuple
 import csv
 import argparse
 import random
+import re
 from operator import attrgetter
 import textwrap
 
@@ -162,8 +163,8 @@ def main():
     filename = os.path.expanduser(args.filename)
     limit = abs(args.results)
     percent = abs(args.percent)
-    additions = [args.additions] if isinstance(
-        args.additions, str) else args.additions
+    verbose = args.verbose
+    additions = _additions(args.additions)
 
     # Add limits to the CLI parameters
     percent = percent if 0 <= percent <= 100 else 25
@@ -187,11 +188,11 @@ def main():
             )
 
     # Create report
-    report(
-        rows, limit=limit, feature_percent=percent, additions=additions)
+    report(rows, limit=limit, feature_percent=percent,
+           additions=additions, verbose=verbose)
 
 
-def report(rows, limit=25, feature_percent=25, additions=None):
+def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     """Process data.
 
     Args:
@@ -199,6 +200,7 @@ def report(rows, limit=25, feature_percent=25, additions=None):
         limit: The number of rows to select
         feature_percent: Percentage of hashtags from feature accounts
         additions: List of hashtags to add
+        verbose: Verbose output if True
 
     Returns:
         None
@@ -222,7 +224,8 @@ def report(rows, limit=25, feature_percent=25, additions=None):
     results = sorted(results, key=attrgetter('posts'), reverse=True)
     for result in results:
         hashtags.append(result.hashtag)
-        print(result)
+        if bool(verbose) is True:
+            print(result)
 
     # Add any additionally requested hashtags
     if isinstance(additions, list):
@@ -240,6 +243,32 @@ def report(rows, limit=25, feature_percent=25, additions=None):
     # Print results
     output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
     print('\n{}{}\n'.format('.\n' * 5, '\n'.join(output)))
+
+
+def _additions(additions):
+    """Create list of additional hashtags to use.
+
+    Args:
+        additions
+
+    Returns:
+        result: List of hashtags
+
+    """
+    # Initialize key variables
+    result = []
+
+    if bool(additions) is True:
+        # Split on word boundaries, including commas
+        hashtags = re.findall(r"[\w']+", additions)
+
+        # Add hashtags
+        for hashtag in hashtags:
+            if bool(re.match(r'^\w+$', hashtag).group(0)) is True:
+                result.append('#{}'.format(hashtag.lower()))
+
+    # Return
+    return result
 
 
 def _args():
@@ -276,6 +305,10 @@ def _args():
         required=False,
         default=25,
         help='Number of results to return.')
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='increase output verbosity')
     result = parser.parse_args()
     return result
 
