@@ -162,6 +162,8 @@ def main():
     filename = os.path.expanduser(args.filename)
     limit = abs(args.results)
     percent = abs(args.percent)
+    additions = [args.additions] if isinstance(
+        args.additions, str) else args.additions
 
     # Add limits to the CLI parameters
     percent = percent if 0 <= percent <= 100 else 25
@@ -185,15 +187,18 @@ def main():
             )
 
     # Create report
-    report(rows, limit=limit, feature_percent=percent)
+    report(
+        rows, limit=limit, feature_percent=percent, additions=additions)
 
 
-def report(rows, limit=25, feature_percent=25):
+def report(rows, limit=25, feature_percent=25, additions=None):
     """Process data.
 
     Args:
         rows: List of Row objects
         limit: The number of rows to select
+        feature_percent: Percentage of hashtags from feature accounts
+        additions: List of hashtags to add
 
     Returns:
         None
@@ -219,6 +224,20 @@ def report(rows, limit=25, feature_percent=25):
         hashtags.append(result.hashtag)
         print(result)
 
+    # Add any additionally requested hashtags
+    if isinstance(additions, list):
+        for addition in additions:
+            if isinstance(addition, str):
+                if addition.startswith('#'):
+                    hashtags.insert(0, addition)
+
+    # Trim hashtag list after additions
+    hashtags = hashtags[:limit]
+
+    # Shuffle hashtags to hide methodology
+    random.shuffle(hashtags)
+
+    # Print results
     output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
     print('\n{}{}\n'.format('.\n' * 5, '\n'.join(output)))
 
@@ -246,6 +265,11 @@ def _args():
         required=False,
         default=25,
         help='Percent of results that are feature accounts.')
+    parser.add_argument(
+        '--additions',
+        type=str,
+        required=False,
+        help='List of mandatory hashtags to add.')
     parser.add_argument(
         '--results',
         type=int,
