@@ -106,7 +106,7 @@ Destination directory '{}' does not exist.'''.format(destination))
         # Overlay source image on background and save
         background.paste(
             resized, (original.hoffset, original.voffset))
-        newfile = '{}{}Instagram-{}'.format(
+        newfile = '{}{}Final-{}'.format(
             destination, os.sep, os.path.basename(filepath))
         newfile = newfile.replace('{0}{0}'.format(os.sep), os.sep)
         print('Converting {} to {}'.format(filepath, newfile))
