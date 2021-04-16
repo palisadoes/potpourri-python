@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 import os
+import math
 import sys
 from collections import namedtuple
 import csv
@@ -117,7 +118,7 @@ def _select(rows, buckets, limit=25):
         count = 0
 
         # Get the required number of items per bucket
-        required = limit * bucket.percent / 100
+        required = math.ceil(limit * bucket.percent / 100)
 
         while len(results[size]) < required:
             # Exit if insufficient items found
@@ -215,17 +216,21 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     features = FeatureHashtags(rows, limit=limit).rows
     regulars = RegularHashtags(rows, limit=limit).rows
 
+    # Randomly select proportionate numbers of feature and regular accounts
     results.extend(random.sample(
-        regulars, int(len(regulars) * (1 - (feature_percent / 100)))))
+        regulars,
+        min(len(regulars), math.ceil(limit * (1 - (feature_percent / 100))))))
     results.extend(random.sample(
-        features, int(len(features) * feature_percent / 100)))
+        features,
+        min(len(features), math.ceil(limit * feature_percent / 100))))
 
-    # Select alternating tags
-    results = sorted(results, key=attrgetter('posts'), reverse=True)
-    for result in results:
-        hashtags.append(result.hashtag)
-        if bool(verbose) is True:
-            print(result)
+    # Randomly select `limit` numbers of results
+    results = random.sample(results, min(limit, len(results)))
+    hashtags = [_.hashtag for _ in results]
+
+    # Verbose output if necessary
+    if bool(verbose) is True:
+        print(results)
 
     # Add any additionally requested hashtags
     if isinstance(additions, list):
