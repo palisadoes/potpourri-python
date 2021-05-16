@@ -72,7 +72,7 @@ def _instagram(filepaths, destination):
 
     """
     # Initialize key variables
-    ig_width = 1024
+    ig_width = 1080
     border = 20
     quality = 100
 
