@@ -308,7 +308,7 @@ def _args():
         '--results',
         type=int,
         required=False,
-        default=25,
+        default=29,
         help='Number of results to return.')
     parser.add_argument(
         '--verbose',
