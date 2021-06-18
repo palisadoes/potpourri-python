@@ -8,7 +8,7 @@ import sys
 from collections import namedtuple
 import argparse
 
-from PIL import Image
+from PIL import Image, ImageOps
 import piexif
 
 
@@ -87,11 +87,12 @@ Destination directory '{}' does not exist.'''.format(destination))
         background = Image.new(
             'RGB', (ig_width, ig_width), color='white')
 
-        # Resize source image to fit on background
+        # Resize source image to fit on background. Add a border
         original = _new_dimensions(
             filepath, ig_width=ig_width, border=border)
         resized = original.image.resize(
             (original.width, original.height), Image.ANTIALIAS)
+        resized = ImageOps.expand(resized, border=1)
 
         # Set exif metadata to match the original except for the dimensions
         found = bool(original.image.info.get('exif'))
