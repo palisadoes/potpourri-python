@@ -12,7 +12,7 @@ import argparse
 import random
 import re
 from operator import attrgetter
-import textwrap
+# import textwrap
 
 
 class Hashtags():
@@ -246,8 +246,9 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     random.shuffle(hashtags)
 
     # Print results
-    output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
-    print('\n{}{}\n'.format('.\n' * 5, '\n'.join(output)))
+    # output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
+    output = hashtags
+    print('\n{}{}\n'.format('.\n' * 5, ' '.join(output)))
 
 
 def _additions(additions):
