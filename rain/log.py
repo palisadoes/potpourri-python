@@ -14,43 +14,13 @@ LOGGER = {}
 _LOGFILE = '/tmp/mailer.log'
 
 
-def check_environment():
-    """Check environmental variables. Die if incorrect.
-
-    Args:
-        None
-
-    Returns:
-        path: Path to the configurtion directory
-
-    """
-    # Get environment
-    if 'OBYA_CONFIGDIR' not in os.environ:
-        os.environ['OBYA_CONFIGDIR'] = '/etc/obya'
-
-    # Verify configuration directory
-    config_directory = os.environ['OBYA_CONFIGDIR']
-    if (os.path.exists(config_directory) is False) or (
-            os.path.isdir(config_directory) is False):
-        log_message = (
-            'Environment variable $OBYA_CONFIGDIR set to '
-            'directory {} that does not exist'
-            ''.format(config_directory))
-        # Must print statement as logging requires a config directory
-        log2die_safe(1020, log_message)
-
-    # Return
-    path = os.environ['OBYA_CONFIGDIR']
-    return path
-
-
 class _GetLog():
     """Class to manage the logging without duplicates."""
 
     def __init__(self):
         """Initialize the class."""
         # Define key variables
-        app_name = 'obya'
+        app_name = 'mailer'
         levels = {
             'debug': logging.DEBUG,
             'info': logging.INFO,

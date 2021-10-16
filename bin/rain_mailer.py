@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""Create Thunderbird email from the CLI."""
+"""Mailing script."""
 
 # Standard imports
 import argparse
-import subprocess
-import shlex
 import os
 import sys
-from email.headerregistry import Address
 
 # PIP imports
 import yaml
@@ -24,8 +21,10 @@ else:
     sys.exit(2)
 
 # Library imports
-from mailer import Person, MailAuth, Mail
-from mailer import email as lib_email
+from rain.mailer import Person, MailAuth, Mail
+from rain.mailer import email as lib_email
+from rain import log
+from rain.mailer import voters
 
 
 def main():
@@ -33,39 +32,58 @@ def main():
     # Get the CLI arguments
     args = cli()
 
+    # Log start
+    log_message = 'Starting Job'
+    log.log2debug(1000, log_message)
+
     # Get configuration
     config_filepath = os.path.abspath(os.path.expanduser(args.config))
     with open(config_filepath) as fh_:
         config = yaml.safe_load(fh_)
 
     # Get email account information
-    sender = Address(
-        display_name='{} {}'.format(config['firstname'], config['lastname']),
-        username=config['username'].split('@')[0],
-        domain=config['username'].split('@')[1]
+    sender = Person(
+        firstname=config['firstname'],
+        lastname=config['lastname'],
+        email=config['username']
     )
-    recipient = sender
+
+    # Get voters
+    recipients = voters.persons(args.voter_file)
 
     # Read the email body
-    textfile = os.path.abspath(os.path.expanduser(config['textfile']))
+    textfile = os.path.abspath(os.path.expanduser(args.html_file))
     with open(textfile) as fh_:
         body = fh_.read()
 
     # Read the email attachment
-    imagefile = os.path.abspath(os.path.expanduser(config['imagefile']))
+    imagefile = os.path.abspath(os.path.expanduser(args.image_file))
 
     # Get authentication information
     auth_ = MailAuth(username=config['username'], password=config['password'])
-    mail_ = Mail(
-        sender=sender,
-        receiver=recipient,
-        body=body,
-        subject=args.subject,
-        attachments=[imagefile]
-    )
 
-    # Send the email
-    lib_email.send(auth_, mail_)
+    # Send mail to each recipient
+    for recipient in recipients:
+        mail_ = Mail(
+            sender=sender,
+            receiver=recipient,
+            body=body,
+            subject=args.subject,
+            image=imagefile
+        )
+
+        # Send the email
+        result = lib_email.send(auth_, mail_)
+        if bool(result) is True:
+            log_message = 'Successfully sent to {}'.format(recipient.email)
+            log.log2debug(1002, log_message)
+        else:
+            log_message = 'Failed to send to {}'.format(recipient.email)
+            log.log2debug(1002, log_message)
+
+    # Log stop
+    log_message = 'Job complete'
+    log.log2debug(1001, log_message)
 
 
 def cli():
@@ -84,6 +102,12 @@ def cli():
         '--config', type=str, required=True)
     parser.add_argument(
         '--subject', type=str, required=True)
+    parser.add_argument(
+        '--image_file', type=str, required=True)
+    parser.add_argument(
+        '--html_file', type=str, required=True)
+    parser.add_argument(
+        '--voter_file', type=str, required=True)
 
     # Parse and return
     args = parser.parse_args()

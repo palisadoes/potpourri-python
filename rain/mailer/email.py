@@ -4,16 +4,18 @@
 import sys
 import smtplib
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
+from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
+import uuid
 
 # Application imports
-from mailer import log
+from rain import log
+from rain.mailer import html
 
 
 def send(auth, mail):
-    """Read a configuration file.
+    """Send mail.
 
     Args:
         auth: Namedtuple with Authentication parameters
@@ -25,6 +27,9 @@ def send(auth, mail):
     """
     # Initialize key variables
     success = False
+    content_id = str(uuid.uuid4())
+    firstname = mail.receiver.firstname if bool(
+        mail.receiver.firstname) else 'Hello'
 
     # Create SMTP TLS session
     client = smtplib.SMTP('smtp.gmail.com', 587)
@@ -48,37 +53,36 @@ def send(auth, mail):
     # Format message
     message = MIMEMultipart()
     message['Subject'] = mail.subject
-    message['From'] = mail.sender
-    message['To'] = mail.receiver
-    # print(mail.sender)
-    # message.add_header('reply-to', mail.sender)
-    # message.add_header('reply-to', mail.sender)
-    html = '''
+    message['From'] = _address(mail.sender)
+    message['To'] = _address(mail.receiver)
+
+    # Format body
+    html_ = '''
 <html>
     <head></head>
-    <body><font face="courier">
-        {}
-    </font></body>
+    <body>
+        <font face="arial">
+        <p>{},</p>
+            {}
+        <br/><img src="cid:{}"/>
+        </font>
+    </body>
 </html>
-'''.format('<br>'.join('&nbsp;'.join(mail.body.split(' ')).split('\n')))
+'''.format(firstname, html.File(mail.body).body(), content_id)
 
-    message.attach(MIMEText(html, 'html', 'UTF-8'))
+    message.attach(MIMEText(html_, 'html', 'UTF-8'))
 
     # Add attachment if required
-    if bool(mail.attachments) is True:
-        if isinstance(mail.attachments, list) is True:
-            for attachment in mail.attachments:
-                part = MIMEApplication(open(attachment, 'rb').read())
-                part.add_header(
-                    'Content-Disposition',
-                    'attachment',
-                    filename=('{}'.format(attachment)))
-                message.attach(part)
+    if bool(mail.image) is True:
+        with open(mail.image, 'rb') as fh_:
+            part = MIMEImage(fh_.read())
+            part.add_header('Content-ID', '<{}>'.format(content_id))
+        message.attach(part)
 
     # Send
     try:
         client.sendmail(
-            mail.sender, mail.receiver, message.as_string())
+            mail.sender.email, mail.receiver.email, message.as_string())
         success = True
     except:
         _exception = sys.exc_info()
@@ -88,3 +92,22 @@ def send(auth, mail):
     finally:
         client.quit()
     return success
+
+
+def _address(person):
+    """Create address object.
+
+    Args:
+        person: Person object
+
+    Returns:
+        result: Address object
+
+    """
+    # Initialize key variables
+    f_name = person.firstname if bool(person.firstname) else 'Arin'
+    l_name = person.lastname if bool(person.lastname) else 'Contact'
+
+    # Return
+    result = formataddr(('{} {}'.format(f_name, l_name), person.email))
+    return result
