@@ -92,7 +92,7 @@ class Org():
 
         """
         # Initialize key variables
-        Contact = namedtuple('Contact', 'name email')
+        Contact = namedtuple('Contact', 'name email kind')
         results = []
 
         # Get entities from data
@@ -100,10 +100,12 @@ class Org():
         for entity in entities:
             name = None
             email = None
+            kind = None
             roles = entity.get('roles')
             status = entity.get('status')
             if bool(roles) and bool(status):
-                if 'administrative' in roles and 'validated' in status:
+                if 'administrative' in roles and (
+                        'validated' or 'active' in status):
                     # Get name and email
                     vcard = entity['vcardArray'][1]
                     for item in vcard:
@@ -112,9 +114,12 @@ class Org():
                                 name = item[-1]
                             if item[0] == 'email':
                                 email = item[-1]
+                            if item[0] == 'kind':
+                                kind = item[-1]
 
                 # Get name and email
-                results.append(Contact(name=name, email=email))
+                if bool(email):
+                    results.append(Contact(name=name, email=email, kind=kind))
 
         # Return
         return results
@@ -158,13 +163,21 @@ def main():
     # Get URLs from file
     filepath = os.path.abspath(os.path.expanduser(args.html_file))
     urls = get_urls(filepath)
-    data = get_data(urls)
 
     # Process Contact
     with open(args.output_file, 'w', newline='') as fh_:
         linewriter = csv.writer(
             fh_, delimiter='\t', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        for business in data:
+
+        # Create header row
+        linewriter.writerow(
+            ['org', 'address', 'handle', 'bkind', 'contact', 'email', 'ekind']
+        )
+
+        for url in urls:
+            business = get_data(url)
+
+            # Process business
             for contact in business.contacts:
                 # Log message
                 log_message = 'Creating entry for {}'.format(contact.email)
@@ -178,39 +191,40 @@ def main():
                     business.kind,
                     contact.name,
                     contact.email,
-
+                    contact.kind,
                 ])
+
+                # Flush to disk immediately
+                fh_.flush()
 
     # Log stop
     log_message = 'Job complete'
     log.log2debug(2002, log_message)
 
 
-def get_data(urls):
-    """Get data from URLs.
+def get_data(url):
+    """Get data from URL.
 
     Args:
-        urls: List of URLs.
+        url: URL.
 
     Returns:
-        result: List of URLs
+        result: URL data
 
     """
     # Initialize key variables
-    result = []
+    result = None
+    html = None
 
-    # Get JSON data from urls
-    for url in urls:
-        html = None
+    # Log
+    log_message = 'Processing {}'.format(url)
+    log.log2debug(2003, log_message)
 
-        # Log
-        log_message = 'Processing {}'.format(url)
-        log.log2debug(2003, log_message)
+    # Contientious sleep
+    time.sleep(random.random() * 10)
 
-        # Contientious sleep
-        time.sleep(random.random() * 10)
-
-        # Read data
+    # Read data
+    try:
         with urllib.request.urlopen(url) as response:
             html = response.read()
 
@@ -218,7 +232,11 @@ def get_data(urls):
             # Convert data to dict
             data = json.loads(html)
             org = Org(data)
-            result.append(org.everything())
+            result = org.everything()
+    except:
+        pass
+
+    print(result)
 
     # Return
     return result
