@@ -57,11 +57,20 @@ class Org():
 
         """
         # Initialize key variables
-        Business = namedtuple('Business', 'handle org address kind')
+        Business = namedtuple(
+            'Business', 'handle org address kind registration')
         result = None
+        registration = None
 
         # Get org data
-        handle = self._data['handle']
+        handle = self._data.get('handle')
+
+        # Get the registration date
+        events = self._data.get('events')
+        if bool(events) is True:
+            for event in events:
+                if event.get('eventAction') == 'registration':
+                    registration = event.get('eventDate')
 
         # Get data from vcard
         vcard = self._data['vcardArray'][1]
@@ -76,7 +85,9 @@ class Org():
                     kind = item[-1]
 
         # Get name and email
-        result = Business(handle=handle, address=address, org=org, kind=kind)
+        result = Business(
+            handle=handle, address=address, org=org,
+            kind=kind, registration=registration)
 
         # Return
         return result
@@ -92,7 +103,7 @@ class Org():
 
         """
         # Initialize key variables
-        Contact = namedtuple('Contact', 'name email kind')
+        Contact = namedtuple('Contact', 'name email kind status')
         results = []
 
         # Get entities from data
@@ -119,7 +130,8 @@ class Org():
 
                 # Get name and email
                 if bool(email):
-                    results.append(Contact(name=name, email=email, kind=kind))
+                    results.append(Contact(
+                        name=name, email=email, kind=kind, status=status[0]))
 
         # Return
         return results
@@ -136,7 +148,7 @@ class Org():
         """
         # Initialize key variables
         OrgData = namedtuple(
-            'OrgData', 'handle org address kind contacts')
+            'OrgData', 'handle org address kind registration contacts')
         contacts = self.contacts()
         business = self.business()
         result = OrgData(
@@ -144,6 +156,7 @@ class Org():
             org=business.org,
             address=business.address,
             kind=business.kind,
+            registration=business.registration,
             contacts=contacts
         )
         return result
@@ -171,11 +184,18 @@ def main():
 
         # Create header row
         linewriter.writerow(
-            ['org', 'address', 'handle', 'bkind', 'contact', 'email', 'ekind']
+            ['business_org', 'business_address',
+             'business_handle', 'business_kind', 'business_registration',
+             'contact_name', 'contact_email',
+             'contact_kind', 'contact_status']
         )
 
         for url in urls:
             business = get_data(url)
+
+            # Skip if business was invalid
+            if bool(business) is False:
+                continue
 
             # Process business
             for contact in business.contacts:
@@ -189,9 +209,11 @@ def main():
                     business.address,
                     business.handle,
                     business.kind,
+                    business.registration,
                     contact.name,
                     contact.email,
                     contact.kind,
+                    contact.status,
                 ])
 
                 # Flush to disk immediately
