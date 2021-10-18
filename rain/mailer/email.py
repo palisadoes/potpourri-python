@@ -25,6 +25,9 @@ def send(auth, mail):
         success: True if succesful
 
     """
+    # Short circuit
+    return False
+
     # Initialize key variables
     success = False
     content_id = str(uuid.uuid4())
@@ -105,7 +108,7 @@ def _address(person):
 
     """
     # Initialize key variables
-    f_name = person.firstname if bool(person.firstname) else 'Arin'
+    f_name = person.firstname if bool(person.firstname) else 'Ar''in'
     l_name = person.lastname if bool(person.lastname) else 'Contact'
 
     # Return

@@ -285,7 +285,7 @@ def get_urls(filepath):
 
     # Extract codes
     for line in lines:
-        if 'https://search.arin.net/rdap?query' in line:
+        if 'https://search.ar''in.net/rdap?query' in line:
             # Extract code
             status = regex.match(line)
             if bool(status.group()):
@@ -293,7 +293,8 @@ def get_urls(filepath):
 
     # Create list of URLs
     for code in codes:
-        result.append('https://rdap.arin.net/registry/entity/{}'.format(code))
+        result.append(
+            'https://rdap.ar''in.net/registry/entity/{}'.format(code))
 
     # Randomly shuffle the URLs
     random.shuffle(result)

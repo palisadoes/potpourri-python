@@ -33,7 +33,7 @@ def main():
     args = cli()
 
     # Log start
-    log_message = 'Starting Job'
+    log_message = 'Starting mailer job'
     log.log2debug(1000, log_message)
 
     # Get configuration
@@ -45,11 +45,21 @@ def main():
     sender = Person(
         firstname=config['firstname'],
         lastname=config['lastname'],
-        email=config['username']
+        email=config['username'],
+        individual=True,
+        validated=True
     )
 
     # Get voters
-    recipients = voters.persons(args.voter_file)
+    persons = voters.Voters(
+        os.path.abspath(os.path.expanduser(args.voter_file)))
+    recipients = persons.uniques()
+
+    sys.exit(0)
+
+    # See output
+    print(recipients)
+    sys.exit(0)
 
     # Read the email body
     textfile = os.path.abspath(os.path.expanduser(args.html_file))
@@ -82,7 +92,7 @@ def main():
             log.log2debug(1002, log_message)
 
     # Log stop
-    log_message = 'Job complete'
+    log_message = 'Mailer job complete'
     log.log2debug(1001, log_message)
 
 
