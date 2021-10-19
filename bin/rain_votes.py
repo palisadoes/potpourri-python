@@ -51,9 +51,13 @@ def main():
             data[email] += 1
         else:
             data[email] = 1
+        print('{},{},{}'.format(record.firstname, record.lastname, record.email))
+
+    return
 
     # Print result
     for email, count in sorted(data.items(), key=lambda item: item[1]):
+        # print(email)
         if count > 1:
             print('{:<50}: {}'.format(email, count))
 
