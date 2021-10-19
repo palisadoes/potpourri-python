@@ -24,7 +24,7 @@ else:
 from rain.mailer import Person, MailAuth, Mail
 from rain.mailer import email as lib_email
 from rain import log
-from rain.mailer import voters
+from rain.mailer import humans
 
 
 def main():
@@ -39,10 +39,10 @@ def main():
     log_message = 'Starting vote estimae job'
     log.log2debug(3000, log_message)
 
-    # Get voter records
-    voters_ = voters.Voters(
-        os.path.abspath(os.path.expanduser(args.voter_file)))
-    records = voters_.complete()
+    # Get human records
+    humans_ = humans.Humans(
+        os.path.abspath(os.path.expanduser(args.human_file)))
+    records = humans_.complete()
 
     # Start counting
     for record in records:
@@ -79,7 +79,7 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--voter_file', type=str, required=True)
+        '--human_file', type=str, required=True)
 
     # Parse and return
     args = parser.parse_args()

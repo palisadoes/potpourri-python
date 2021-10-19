@@ -24,7 +24,7 @@ else:
 from rain.mailer import Person, MailAuth, Mail
 from rain.mailer import email as lib_email
 from rain import log
-from rain.mailer import voters
+from rain.mailer import humans
 
 
 def main():
@@ -50,9 +50,9 @@ def main():
         validated=True
     )
 
-    # Get voters
-    persons = voters.Voters(
-        os.path.abspath(os.path.expanduser(args.voter_file)))
+    # Get humans
+    persons = humans.Humans(
+        os.path.abspath(os.path.expanduser(args.human_file)))
     recipients = persons.uniques()
 
     sys.exit(0)
@@ -117,7 +117,7 @@ def cli():
     parser.add_argument(
         '--html_file', type=str, required=True)
     parser.add_argument(
-        '--voter_file', type=str, required=True)
+        '--human_file', type=str, required=True)
 
     # Parse and return
     args = parser.parse_args()

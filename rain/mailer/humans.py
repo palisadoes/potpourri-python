@@ -1,4 +1,4 @@
-"""Application module to manage voter file management."""
+"""Application module to manage human file management."""
 
 # Standard imports
 import sys
@@ -11,14 +11,14 @@ import pandas as pd
 from rain.mailer import Person
 
 
-class Voters():
+class Humans():
     """Extract data from Organization."""
 
     def __init__(self, filename):
         """Initialize the class.
 
         Args:
-            filename: Name of tsv with voters
+            filename: Name of tsv with humans
 
         Returns:
             None
@@ -28,7 +28,7 @@ class Voters():
         self._data = _persons(filename)
 
     def complete(self):
-        """Convert voter email file to list of Person objects.
+        """Convert human email file to list of Person objects.
 
         Args:
             None
@@ -41,7 +41,7 @@ class Voters():
         return self._data
 
     def uniques(self):
-        """Convert voter email file to list of unique Person objects.
+        """Convert human email file to list of unique Person objects.
 
         Args:
             None
@@ -71,10 +71,10 @@ class Voters():
 
 
 def _persons(filename):
-    """Convert voter email file to list of Person objects.
+    """Convert human email file to list of Person objects.
 
     Args:
-        filename: Name of tsv with voters
+        filename: Name of tsv with humans
 
     Returns:
         result: List of Person objects
