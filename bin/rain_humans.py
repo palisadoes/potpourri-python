@@ -6,8 +6,6 @@ import argparse
 import os
 import sys
 
-# PIP imports
-import yaml
 
 # Try to create a working PYTHONPATH
 _BIN_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -51,13 +49,39 @@ def main():
             data[email] += 1
         else:
             data[email] = 1
-        print('{},{},{}'.format(record.firstname, record.lastname, record.email))
+        print('-> {}, {}, {}, {}, {}'.format(record.firstname, record.lastname, record.email, record.state, record.country))
 
     return
+
+    '''
+    Anguilla
+    Antigua And Barbuda
+    Bahamas
+    Barbados
+    Bermuda
+    Cayman Islands
+    Dominica
+    Grenada
+    Guadeloupe
+    Jamaica
+    Martinique
+    Montserrat
+    Saint Barthelemy
+    Saint Kitts And Nevis
+    Saint Lucia
+    Saint Vincent And The Grenadines
+    Saint Martin
+    Turks And Caicos Islands
+    Virgin Islands, British
+
+    PUERTO RICO
+    Virgin Islands, U.S.
+    '''
 
     # Print result
     for email, count in sorted(data.items(), key=lambda item: item[1]):
         # print(email)
+        continue
         if count > 1:
             print('{:<50}: {}'.format(email, count))
 

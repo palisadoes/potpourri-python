@@ -114,10 +114,13 @@ def _persons(filename):
         if _email_ok(email) is False:
             continue
 
-        # Skip government
+        # Skip the obvious
         domain = email.split('@')[-1]
         if 'ar''in' in domain:
             continue
+
+        # Get country and state information
+        address = row['business_address'].split(':')
 
         # Add to dict
         if bool(email) is True:
@@ -127,6 +130,8 @@ def _persons(filename):
                     lastname=lastname.title(),
                     email=email.lower(),
                     individual=_is_individual(firstname, lastname, email),
+                    country=address[-1].title(),
+                    state=address[-3].upper(),
                     validated=validated
                 )
             )
