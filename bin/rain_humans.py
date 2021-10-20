@@ -42,6 +42,15 @@ def main():
         os.path.abspath(os.path.expanduser(args.human_file)))
     records = humans_.complete()
 
+    strainer = humans.Strainer(records)
+    records = strainer.state('PR')
+    # records = strainer.caribbean()
+    # records = strainer.country('Canada')
+    #
+    for record in records:
+        print(record)
+    return
+
     # Start counting
     for record in records:
         email = record.email
@@ -49,30 +58,13 @@ def main():
             data[email] += 1
         else:
             data[email] = 1
-        print('-> {}, {}, {}, {}, {}'.format(record.firstname, record.lastname, record.email, record.state, record.country))
-
-    return
+        # print('-> {}, {}, {}, {}, {}'.format(record.firstname, record.lastname, record.email, record.state, record.country))
 
     '''
-    Anguilla
-    Antigua And Barbuda
-    Bahamas
-    Barbados
-    Bermuda
-    Cayman Islands
-    Dominica
-    Grenada
-    Guadeloupe
-    Jamaica
-    Martinique
-    Montserrat
     Saint Barthelemy
-    Saint Kitts And Nevis
-    Saint Lucia
-    Saint Vincent And The Grenadines
+    Guadeloupe
+    Martinique
     Saint Martin
-    Turks And Caicos Islands
-    Virgin Islands, British
 
     PUERTO RICO
     Virgin Islands, U.S.
@@ -81,7 +73,6 @@ def main():
     # Print result
     for email, count in sorted(data.items(), key=lambda item: item[1]):
         # print(email)
-        continue
         if count > 1:
             print('{:<50}: {}'.format(email, count))
 

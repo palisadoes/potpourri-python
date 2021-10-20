@@ -70,6 +70,85 @@ class Humans():
         return result
 
 
+class Strainer():
+    """Extract data from Organization."""
+
+    def __init__(self, persons):
+        """Initialize the class.
+
+        Args:
+            persons: List of Person objects
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        self._persons = persons
+
+    def caribbean(self):
+        """Return all Caribbean persons.
+
+        Args:
+            None
+
+        Returns:
+            result: List of Persons from the Caribbean
+
+        """
+        # Initialize key variables
+        result = []
+        countries = [
+            'Anguilla', 'Antigua And Barbuda', 'Bahamas', 'Barbados',
+            'Bermuda', 'Cayman Islands', 'Dominica', 'Grenada', 'Jamaica',
+            'Saint Kitts And Nevis', 'Saint Lucia',
+            'Saint Vincent And The Grenadines', 'Turks And Caicos Islands',
+            'Virgin Islands, British']
+
+        # Process and return
+        for _country in countries:
+            result.extend(self.country(_country))
+        return result
+
+    def country(self, _country):
+        """Return all persons from a sprecific country.
+
+        Args:
+            _country: Country to select
+
+        Returns:
+            result: List of Persons from the country
+
+        """
+        # Initialize key variables
+        result = []
+
+        # Process and return
+        for person in self._persons:
+            if person.country == _country:
+                result.append(person)
+        return result
+
+    def state(self, _state):
+        """Return all persons from a sprecific state.
+
+        Args:
+            _state: Country to select
+
+        Returns:
+            result: List of Persons from the state
+
+        """
+        # Initialize key variables
+        result = []
+
+        # Process and return
+        for person in self._persons:
+            if person.state == _state:
+                result.append(person)
+        return result
+
+
 def _persons(filename):
     """Convert human email file to list of Person objects.
 
