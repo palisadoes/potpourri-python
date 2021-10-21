@@ -7,11 +7,89 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
+import os
 import uuid
 
 # Application imports
 from rain import log
 from rain.mailer import html
+
+
+class Mailto():
+    """Class to generate mailto records."""
+
+    def __init__(self, history_file, output_file, subject):
+        """Initialize the class.
+
+        Args:
+            history_file: Contains list of emails previously sent
+            output_file: File containing mailto links
+            subject: Subject of email
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        self._history = history_file
+        self._output = output_file
+        self._subject = subject
+
+    def append(self, persons):
+        """Send mail.
+
+        Args:
+            persons: List of person objects
+
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        emails = []
+        valids = []
+        links = []
+
+        # Get emails previously sent
+        if os.path.isfile(self._history) is True:
+            with open(self._history, 'r') as fh_:
+                emails = [_.strip() for _ in fh_.readlines()]
+
+        # Filter emails
+        for person in persons:
+            if person.email not in emails:
+                valids.append(person)
+
+        # Create mailto links
+        for person in valids:
+            # Create first and last names
+            if not bool(person.individual):
+                f_name = 'Technical'
+                l_name = 'Contact - {}'.format(
+                    person.organization.split()[0].title())
+                greeting = 'Hello'
+            else:
+                f_name = person.firstname
+                l_name = person.lastname
+                greeting = person.firstname
+
+            # Create links
+            links.append('''\
+<a href="mailto:&quot;{}%20{}&quot;&lt;{}&gt;?\
+subject={}&body={}%2C%0A">{}</a><br>\
+'''.format(f_name, l_name, person.email,'%20'.join(self._subject.split()),
+           greeting, person.organization))
+
+        # Write to output file
+        with open(self._output, 'a') as fh_:
+            for link in links:
+                fh_.write('{}\n'.format(link))
+
+        # Write to history file
+        with open(self._history, 'a') as fh_:
+            for person in valids:
+                fh_.write('{}\n'.format(person.email))
 
 
 def send(auth, mail):

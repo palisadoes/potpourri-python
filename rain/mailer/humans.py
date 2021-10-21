@@ -101,7 +101,7 @@ class Strainer():
         countries = [
             'Anguilla', 'Antigua And Barbuda', 'Bahamas', 'Barbados',
             'Bermuda', 'Cayman Islands', 'Dominica', 'Grenada', 'Jamaica',
-            'Saint Kitts And Nevis', 'Saint Lucia',
+            'Saint Kitts And Nevis', 'Saint Lucia', 'Virgin Islands, U.S.',
             'Saint Vincent And The Grenadines', 'Turks And Caicos Islands',
             'Virgin Islands, British']
 
@@ -182,7 +182,8 @@ def _persons(filename):
         lastname = row[
             'lastname'].strip() if bool(row['lastname']) else None
         email = row[
-            'contact_email'].strip() if bool(row['contact_email']) else None
+            'contact_email'].strip().lower() if bool(
+                row['contact_email']) else None
         validated = 'valid' in row['contact_status'].lower()
 
         # Skip this is a test account
@@ -211,7 +212,8 @@ def _persons(filename):
                     individual=_is_individual(firstname, lastname, email),
                     country=address[-1].title(),
                     state=address[-3].upper(),
-                    validated=validated
+                    validated=validated,
+                    organization=row['business_org']
                 )
             )
 
@@ -253,7 +255,7 @@ def _is_individual(firstname, lastname, email):
         # Check typical department names
         if item.lower() in firstname.lower() or (
                 item.lower() in lastname.lower()) or (
-                    item.lower() in email.lower()):
+                    item.lower() in email.lower().split('@')[0]):
             result = False
             break
 
@@ -325,6 +327,13 @@ def _email_ok(email):
         if domain.lower().endswith(bad_domain):
             result = False
             break
+
+    for bad_domain in bad_domains:
+        components = domain.split('.')
+        for component in components:
+            if bad_domain.lower() == component.lower():
+                result = False
+                break
 
     # No 'ar''in' addresses
     if 'ar''in' in domain:
