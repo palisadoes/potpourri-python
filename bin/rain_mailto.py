@@ -59,9 +59,10 @@ def main():
     generator(mailto, caribbean)
 
     # Process state
-    if bool(args.state) is True:
-        citizens = strainer_.state(args.state.upper(), individuals_only=True)
-        generator(mailto, citizens)
+    if bool(args.states) is True:
+        for state in args.states.split(','):
+            citizens = strainer_.state(state.upper(), individuals_only=True)
+            generator(mailto, citizens)
 
     # Log stop
     log_message = 'Vote estimate job complete'
@@ -164,7 +165,7 @@ def cli():
     parser.add_argument(
         '--subject', type=str, required=True)
     parser.add_argument(
-        '--state', type=str)
+        '--states', type=str)
 
     # Parse and return
     args = parser.parse_args()
