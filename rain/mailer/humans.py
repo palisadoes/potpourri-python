@@ -360,3 +360,50 @@ def _email_ok(email):
         result = False
 
     return result
+
+
+def goats(humans_):
+    """Generate mailtos for GOATs.
+
+    Args:
+        mailto: email.Thunderbird object
+        persons: List of person objects
+
+    Returns:
+        None
+
+    """
+    # Initialize key variables
+    counter = {}
+    lookup = {}
+    targets = []
+
+    # Get all records
+    everyone = humans_.complete()
+
+    # Get frequency data and create lookup
+    for person in everyone:
+        email = person.email
+        if counter.get(email):
+            counter[email] += 1
+            lookup[email].append(person)
+        else:
+            counter[email] = 1
+            lookup[email] = [person]
+
+    # Print result
+    for email, count in sorted(
+            counter.items(), key=lambda item: item[1], reverse=True):
+        # print(email)
+        if count > 1:
+            print('{:<50}: {}'.format(email, count))
+
+            # Get the most popular company name
+            companies = [_.organization for _ in lookup[email]]
+            most_popular = max(set(companies), key=companies.count)
+            person = [
+                _ for _ in lookup[email] if _.organization == most_popular][0]
+            targets.append(person)
+
+    # Update files
+    return targets

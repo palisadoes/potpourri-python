@@ -9,10 +9,111 @@ from email.mime.multipart import MIMEMultipart
 from email.utils import formataddr
 import os
 import uuid
+import tempfile
+import pathlib
 
 # Application imports
 from rain import log
 from rain.mailer import html
+
+
+class Thunderbird():
+    """Class to generate Thunderbird records."""
+
+    def __init__(self, history_file, output_file, body_file, subject, sender):
+        """Initialize the class.
+
+        Args:
+            history_file: Contains list of emails previously sent
+            output_file: File containing Thunderbird commands
+            body_file: Text file of content to send
+            subject: Subject of email
+            sender: Sender
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        self._history = history_file
+        self._output = output_file
+        self._subject = subject
+        self._sender = sender
+
+        # Read body_file into a string
+        with open(body_file, 'r') as fh_:
+            self._body = fh_.read()
+
+    def append(self, persons):
+        """Send mail.
+
+        Args:
+            persons: List of person objects
+
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        emails = []
+        valids = []
+        lines = []
+
+        # Get emails previously sent
+        if os.path.isfile(self._history) is True:
+            with open(self._history, 'r') as fh_:
+                emails = [_.strip() for _ in fh_.readlines()]
+
+        # Filter emails
+        for person in persons:
+            if person.email not in emails:
+                valids.append(person)
+
+        # Create mailto links
+        for person in valids:
+            # Create first and last names
+            if not bool(person.individual):
+                f_name = 'Technical'
+                l_name = 'Contact - {}'.format(
+                    person.organization.split()[0].title())
+                greeting = 'Hello'
+            else:
+                f_name = person.firstname
+                l_name = person.lastname
+                greeting = person.firstname
+
+            # Create a temporary file with the email body
+            with tempfile.NamedTemporaryFile(
+                    mode='w',
+                    delete=False,
+                    suffix='.txt',
+                    dir=os.path.abspath(
+                        os.path.expanduser('~/tmp/thunderbird'))) as fh_:
+                fh_.write('{},\n\n{}'.format(greeting, self._body))
+                filepath = pathlib.Path(fh_.name)
+
+            # Create entry for output file
+            command = '''\
+/usr/bin/thunderbird -compose "\
+to='{0} {1} <{2}>',\
+from='{3}',\
+subject='{4}',\
+message='{5}'\
+"\
+'''.format(
+    f_name, l_name, person.email, self._sender, self._subject, filepath)
+            lines.append(command)
+
+        # Write to output file
+        with open(self._output, 'a') as fh_:
+            for line in lines:
+                fh_.write('{}\n'.format(line))
+
+        # Write to history file
+        with open(self._history, 'a') as fh_:
+            for person in valids:
+                fh_.write('{}\n'.format(person.email))
 
 
 class Mailto():

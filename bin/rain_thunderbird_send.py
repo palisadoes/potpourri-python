@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Creates HTML file with mailto links."""
+"""Sends email using Thunderbird."""
 
 # Standard imports
 import argparse
@@ -31,16 +31,14 @@ def main():
 
     # Get the CLI arguments
     args = cli()
-    human_file = os.path.abspath(os.path.expanduser(args.human_file))
-    output_file = os.path.abspath(os.path.expanduser(args.output_file))
-    history_file = os.path.abspath(os.path.expanduser(args.history_file))
 
     # Log start
-    log_message = 'Starting vote estimae job'
-    log.log2debug(3000, log_message)
+    log_message = 'Starting Thunderbird sending job'
+    log.log2debug(5000, log_message)
 
     # Get human records
-    humans_ = humans.Humans(human_file)
+    humans_ = humans.Humans(
+        os.path.abspath(os.path.expanduser(args.human_file)))
     everyone = humans_.complete()
 
     # Filter persons
@@ -48,12 +46,11 @@ def main():
     caribbean = strainer_.caribbean()
 
     # Create object for generating emails
-    mailto = lib_email.Mailto(history_file, output_file, args.subject)
+    mailto = lib_email.Mailto(
+        args.history_file, args.output_file, args.subject)
 
     # Process GOATs
-    label(args.output_file, 'Goats')
-    goats = humans.goats(humans_)
-    generator(mailto, goats)
+    goats(mailto, everyone)
 
     # Process Caribbean
     label(args.output_file, 'Caribbean')
@@ -68,12 +65,12 @@ def main():
             generator(mailto, citizens)
 
     # Log stop
-    log_message = 'Vote estimate job complete'
-    log.log2debug(3001, log_message)
+    log_message = 'Thunderbird sending job complete'
+    log.log2debug(5001, log_message)
 
 
 def label(filename, label_):
-    """Add HTML label to file.
+    """Generate mailtos for Person.
 
     Args:
         filename: Name of file
@@ -88,7 +85,7 @@ def label(filename, label_):
 
 
 def generator(mailto, persons):
-    """Generate mailto entries for Person.
+    """Generate mailtos for Person.
 
     Args:
         mailto: email.Mailto object
@@ -109,6 +106,59 @@ def generator(mailto, persons):
     mailto.append(targets)
 
 
+def goats(mailto, persons):
+    """Generate mailtos for GOATs.
+
+    Args:
+        mailto: email.Mailto object
+        persons: List of person objects
+
+    Returns:
+        None
+
+    """
+    # Initialize key variables
+    counter = {}
+    lookup = {}
+    targets = []
+
+    # Get frequency data and create lookup
+    for person in persons:
+        email = person.email
+        if counter.get(email):
+            counter[email] += 1
+            lookup[email].append(person)
+        else:
+            counter[email] = 1
+            lookup[email] = [person]
+
+    '''
+    Saint Barthelemy
+    Guadeloupe
+    Martinique
+    Saint Martin
+
+    PUERTO RICO
+    '''
+
+    # Print result
+    for email, count in sorted(
+            counter.items(), key=lambda item: item[1], reverse=True):
+        # print(email)
+        if count > 1:
+            print('{:<50}: {}'.format(email, count))
+
+            # Get the most popular company name
+            companies = [_.organization for _ in lookup[email]]
+            most_popular = max(set(companies), key=companies.count)
+            person = [
+                _ for _ in lookup[email] if _.organization == most_popular][0]
+            targets.append(person)
+
+    # Update files
+    mailto.append(targets)
+
+
 def cli():
     """Parse the CLI.
 
@@ -124,11 +174,9 @@ def cli():
     parser.add_argument(
         '--human_file', type=str, required=True)
     parser.add_argument(
-        '--output_file', type=str, required=True,
-        default='~/tmp/rain/Mailto-Output.html')
+        '--output_file', type=str, required=True)
     parser.add_argument(
-        '--history_file', type=str, required=True,
-        default='~/tmp/rain/Mailto-History.db')
+        '--history_file', type=str, required=True)
     parser.add_argument(
         '--subject', type=str, required=True)
     parser.add_argument(
