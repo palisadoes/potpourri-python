@@ -58,6 +58,11 @@ def main():
     # Process Caribbean
     generator(mailto, caribbean)
 
+    # Process state
+    if bool(args.state) is True:
+        citizens = strainer_.state(args.state.upper(), individuals_only=True)
+        generator(mailto, citizens)
+
     # Log stop
     log_message = 'Vote estimate job complete'
     log.log2debug(3001, log_message)
@@ -158,6 +163,8 @@ def cli():
         '--history_file', type=str, required=True)
     parser.add_argument(
         '--subject', type=str, required=True)
+    parser.add_argument(
+        '--state', type=str)
 
     # Parse and return
     args = parser.parse_args()

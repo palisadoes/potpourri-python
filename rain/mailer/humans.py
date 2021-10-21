@@ -110,11 +110,12 @@ class Strainer():
             result.extend(self.country(_country))
         return result
 
-    def country(self, _country):
+    def country(self, _country, individuals_only=False):
         """Return all persons from a sprecific country.
 
         Args:
             _country: Country to select
+            individuals_only: Only return individuals if True
 
         Returns:
             result: List of Persons from the country
@@ -126,14 +127,19 @@ class Strainer():
         # Process and return
         for person in self._persons:
             if person.country == _country:
-                result.append(person)
+                if bool(individuals_only) is False:
+                    result.append(person)
+                else:
+                    if person.individual is True:
+                        result.append(person)
         return result
 
-    def state(self, _state):
+    def state(self, _state, individuals_only=False):
         """Return all persons from a sprecific state.
 
         Args:
             _state: Country to select
+            individuals_only: Only return individuals if True
 
         Returns:
             result: List of Persons from the state
@@ -145,7 +151,11 @@ class Strainer():
         # Process and return
         for person in self._persons:
             if person.state == _state:
-                result.append(person)
+                if bool(individuals_only) is False:
+                    result.append(person)
+                else:
+                    if person.individual is True:
+                        result.append(person)
         return result
 
 
@@ -202,6 +212,9 @@ def _persons(filename):
         # Get country and state information
         address = row['business_address'].split(':')
 
+        # Get type of person record
+        contact_kind = row['contact_kind'].strip()
+
         # Add to dict
         if bool(email) is True:
             result.append(
@@ -209,7 +222,8 @@ def _persons(filename):
                     firstname=firstname.title(),
                     lastname=lastname.title(),
                     email=email.lower(),
-                    individual=_is_individual(firstname, lastname, email),
+                    individual=_is_individual(
+                        firstname, lastname, email, contact_kind),
                     country=address[-1].title(),
                     state=address[-3].upper(),
                     validated=validated,
@@ -221,7 +235,7 @@ def _persons(filename):
     return result
 
 
-def _is_individual(firstname, lastname, email):
+def _is_individual(firstname, lastname, email, contact_kind):
     """Determine whether this is a person or a department.
 
     Args:
@@ -229,6 +243,7 @@ def _is_individual(firstname, lastname, email):
         lastname: Last name
         company: Name of company
         email: Email address
+        contact_kind: Kind of contact (individual, group)
 
     Returns:
         result: True if individual
@@ -282,6 +297,11 @@ def _is_individual(firstname, lastname, email):
                 item.lower() in lastname.lower()):
             result = False
             break
+
+    # If the organization says that this is a group,
+    # then it's not an individual
+    if contact_kind.lower() == 'group':
+        result = False
 
     # Return
     return result
