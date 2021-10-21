@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Creates HTML file with mailto links."""
+"""Sends email using Thunderbird."""
 
 # Standard imports
 import argparse
