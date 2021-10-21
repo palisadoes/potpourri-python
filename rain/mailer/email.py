@@ -11,6 +11,8 @@ import os
 import uuid
 import tempfile
 import pathlib
+import re
+from collections import namedtuple
 
 # Application imports
 from rain import log
@@ -74,9 +76,9 @@ class Thunderbird():
         for person in valids:
             # Create first and last names
             if not bool(person.individual):
-                f_name = 'Technical'
-                l_name = 'Contact - {}'.format(
-                    person.organization.split()[0].title())
+                recipient = _recipient(person)
+                f_name = recipient.firstname
+                l_name = recipient.lastname
                 greeting = 'Hello'
             else:
                 f_name = person.firstname
@@ -166,9 +168,9 @@ class Mailto():
         for person in valids:
             # Create first and last names
             if not bool(person.individual):
-                f_name = 'Technical'
-                l_name = 'Contact - {}'.format(
-                    person.organization.split()[0].title())
+                recipient = _recipient(person)
+                f_name = recipient.firstname
+                l_name = recipient.lastname
                 greeting = 'Hello'
             else:
                 f_name = person.firstname
@@ -292,4 +294,25 @@ def _address(person):
 
     # Return
     result = formataddr(('{} {}'.format(f_name, l_name), person.email))
+    return result
+
+
+def _recipient(person):
+    """Strip non alphanumeric characters.
+
+    Args:
+        person: Person object
+
+    Returns:
+        result: nonalpha string
+
+    """
+    # Initialize key variables
+    Recipient = namedtuple('Recipient', 'firstname lastname')
+    regex = re.compile('[^a-zA-Z]')
+    nonalpha = regex.sub('', person.organization)
+    result = Recipient(
+        firstname='Technical',
+        lastname='Contact - {}'.format(nonalpha.split()[0].title())
+        )
     return result

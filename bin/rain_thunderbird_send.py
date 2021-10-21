@@ -5,7 +5,8 @@
 import argparse
 import os
 import sys
-
+import subprocess
+import shlex
 
 # Try to create a working PYTHONPATH
 _BIN_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
@@ -28,135 +29,40 @@ from rain.mailer import humans
 def main():
     """Main Function."""
     # Initialize key variables
+    count = 0
+    interval = 5
 
     # Get the CLI arguments
     args = cli()
+    input_file = os.path.abspath(os.path.expanduser(args.input_file))
 
     # Log start
     log_message = 'Starting Thunderbird sending job'
     log.log2debug(5000, log_message)
 
-    # Get human records
-    humans_ = humans.Humans(
-        os.path.abspath(os.path.expanduser(args.human_file)))
-    everyone = humans_.complete()
+    # Read body_file into a string
+    with open(input_file, 'r') as fh_:
+        lines = fh_.readlines()
+    records = [_.strip() for _ in lines if '#' not in _]
 
-    # Filter persons
-    strainer_ = humans.Strainer(everyone)
-    caribbean = strainer_.caribbean()
+    for record in records:
+        count += 1
+        print(count)
 
-    # Create object for generating emails
-    mailto = lib_email.Mailto(
-        args.history_file, args.output_file, args.subject)
+        # Process command
+        with subprocess.Popen(
+            shlex.split(record),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE) as process:
+            stdoutdata, stderrdata = process.communicate()
+            returncode = process.returncode
 
-    # Process GOATs
-    goats(mailto, everyone)
-
-    # Process Caribbean
-    label(args.output_file, 'Caribbean')
-    generator(mailto, caribbean)
-
-    # Process state
-    if bool(args.states) is True:
-        for state in args.states.split(','):
-            # Update the stuff
-            label(args.output_file, state.upper())
-            citizens = strainer_.state(state.upper(), individuals_only=True)
-            generator(mailto, citizens)
+        if count % interval == 0:
+            input('Press any key to continue...')
 
     # Log stop
     log_message = 'Thunderbird sending job complete'
     log.log2debug(5001, log_message)
-
-
-def label(filename, label_):
-    """Generate mailtos for Person.
-
-    Args:
-        filename: Name of file
-        label_: Label to write
-
-    Returns:
-        None
-    """
-    # Write to output file
-    with open(filename, 'a') as fh_:
-        fh_.write('<br><b>{}</b><br>\n'.format(label_.upper()))
-
-
-def generator(mailto, persons):
-    """Generate mailtos for Person.
-
-    Args:
-        mailto: email.Mailto object
-        persons: List of person objects
-
-    Returns:
-        None
-    """
-    # Initialize key variables
-    uniques = {}
-
-    # Create a unique list of persons
-    for person in persons:
-        uniques[person.email] = person
-    targets = list(uniques.values())
-
-    # Update files
-    mailto.append(targets)
-
-
-def goats(mailto, persons):
-    """Generate mailtos for GOATs.
-
-    Args:
-        mailto: email.Mailto object
-        persons: List of person objects
-
-    Returns:
-        None
-
-    """
-    # Initialize key variables
-    counter = {}
-    lookup = {}
-    targets = []
-
-    # Get frequency data and create lookup
-    for person in persons:
-        email = person.email
-        if counter.get(email):
-            counter[email] += 1
-            lookup[email].append(person)
-        else:
-            counter[email] = 1
-            lookup[email] = [person]
-
-    '''
-    Saint Barthelemy
-    Guadeloupe
-    Martinique
-    Saint Martin
-
-    PUERTO RICO
-    '''
-
-    # Print result
-    for email, count in sorted(
-            counter.items(), key=lambda item: item[1], reverse=True):
-        # print(email)
-        if count > 1:
-            print('{:<50}: {}'.format(email, count))
-
-            # Get the most popular company name
-            companies = [_.organization for _ in lookup[email]]
-            most_popular = max(set(companies), key=companies.count)
-            person = [
-                _ for _ in lookup[email] if _.organization == most_popular][0]
-            targets.append(person)
-
-    # Update files
-    mailto.append(targets)
 
 
 def cli():
@@ -172,15 +78,7 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--human_file', type=str, required=True)
-    parser.add_argument(
-        '--output_file', type=str, required=True)
-    parser.add_argument(
-        '--history_file', type=str, required=True)
-    parser.add_argument(
-        '--subject', type=str, required=True)
-    parser.add_argument(
-        '--states', type=str)
+        '--input_file', type=str, required=True)
 
     # Parse and return
     args = parser.parse_args()
