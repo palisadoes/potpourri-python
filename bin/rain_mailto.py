@@ -56,17 +56,35 @@ def main():
     # sys.exit()
 
     # Process Caribbean
+    label(args.output_file, 'Caribbean')
     generator(mailto, caribbean)
 
     # Process state
     if bool(args.states) is True:
         for state in args.states.split(','):
+            # Update the stuff
+            label(args.output_file, state.upper())
             citizens = strainer_.state(state.upper(), individuals_only=True)
             generator(mailto, citizens)
 
     # Log stop
     log_message = 'Vote estimate job complete'
     log.log2debug(3001, log_message)
+
+
+def label(filename, label_):
+    """Generate mailtos for Person.
+
+    Args:
+        filename: Name of file
+        label_: Label to write
+
+    Returns:
+        None
+    """
+    # Write to output file
+    with open(filename, 'a') as fh_:
+        fh_.write('<br><b>{}</b><br>\n'.format(label_.upper()))
 
 
 def generator(mailto, persons):
