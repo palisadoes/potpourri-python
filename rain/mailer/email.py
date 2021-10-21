@@ -310,9 +310,9 @@ def _recipient(person):
     # Initialize key variables
     Recipient = namedtuple('Recipient', 'firstname lastname')
     regex = re.compile('[^a-zA-Z]')
-    nonalpha = regex.sub('', person.organization)
+    nonalpha = regex.sub('', person.organization.split()[0].title())
     result = Recipient(
         firstname='Technical',
-        lastname='Contact - {}'.format(nonalpha.split()[0].title())
+        lastname='Contact - {}'.format(nonalpha)
         )
     return result
