@@ -311,7 +311,7 @@ def _recipient(person):
     alphanumeric = regex.sub('', person.organization.split()[0].title())
     result = Recipient(
         firstname='Technical',
-        lastname='Contact - {}'.format(alphanumeric)
+        lastname='Team - {}'.format(alphanumeric)
         )
     return result
 
