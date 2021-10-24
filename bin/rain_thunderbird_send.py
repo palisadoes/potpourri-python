@@ -23,7 +23,6 @@ else:
 from rain.mailer import Person, MailAuth, Mail
 from rain.mailer import email as lib_email
 from rain import log
-from rain.mailer import humans
 
 
 def main():
@@ -34,7 +33,8 @@ def main():
 
     # Get the CLI arguments
     args = cli()
-    input_file = os.path.abspath(os.path.expanduser(args.input_file))
+    _campaign = lib_email.campaign_files(args.campaign)
+    input_file = _campaign.thunderbird_file
 
     # Log start
     log_message = 'Starting Thunderbird sending job'
@@ -78,7 +78,11 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--input_file', type=str, required=True)
+        '--campaign', type=str, required=True,
+        help='''\
+Name of the email campaign. This is used to determine the name of the \
+Thunderbird file to ingest.'''
+        )
 
     # Parse and return
     args = parser.parse_args()

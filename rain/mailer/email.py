@@ -22,12 +22,11 @@ from rain.mailer import html
 class Thunderbird():
     """Class to generate Thunderbird records."""
 
-    def __init__(self, history_file, output_file, body_file, subject, sender):
+    def __init__(self, campaign, body_file, subject, sender):
         """Initialize the class.
 
         Args:
-            history_file: Contains list of emails previously sent
-            output_file: File containing Thunderbird commands
+            campaign: Name of the campaing
             body_file: Text file of content to send
             subject: Subject of email
             sender: Sender
@@ -37,8 +36,7 @@ class Thunderbird():
 
         """
         # Initialize key variables
-        self._history = history_file
-        self._output = output_file
+        self._campaign = campaign_files(campaign)
         self._subject = subject
         self._sender = sender
 
@@ -63,8 +61,8 @@ class Thunderbird():
         lines = []
 
         # Get emails previously sent
-        if os.path.isfile(self._history) is True:
-            with open(self._history, 'r') as fh_:
+        if os.path.isfile(self._campaign.history_file) is True:
+            with open(self._campaign.history_file, 'r') as fh_:
                 emails = [_.strip() for _ in fh_.readlines()]
 
         # Filter emails
@@ -89,10 +87,10 @@ class Thunderbird():
             with tempfile.NamedTemporaryFile(
                     mode='w',
                     delete=False,
-                    suffix='.txt',
-                    dir=os.path.abspath(
-                        os.path.expanduser('~/tmp/thunderbird'))) as fh_:
-                fh_.write('{},\n\n{}'.format(greeting, self._body))
+                    suffix='.html',
+                    dir=self._campaign.cache_directory) as fh_:
+                fh_.write(
+                    '{}'.format(self._body.replace('XXXXXXXXXX', greeting)))
                 filepath = pathlib.Path(fh_.name)
 
             # Create entry for output file
@@ -108,12 +106,12 @@ message='{5}'\
             lines.append(command)
 
         # Write to output file
-        with open(self._output, 'a') as fh_:
+        with open(self._campaign.thunderbird_file, 'a') as fh_:
             for line in lines:
                 fh_.write('{}\n'.format(line))
 
         # Write to history file
-        with open(self._history, 'a') as fh_:
+        with open(self._campaign.history_file, 'a') as fh_:
             for person in valids:
                 fh_.write('{}\n'.format(person.email))
 
@@ -304,15 +302,52 @@ def _recipient(person):
         person: Person object
 
     Returns:
-        result: nonalpha string
+        result: alphanumeric string
 
     """
     # Initialize key variables
     Recipient = namedtuple('Recipient', 'firstname lastname')
     regex = re.compile('[^a-zA-Z]')
-    nonalpha = regex.sub('', person.organization.split()[0].title())
+    alphanumeric = regex.sub('', person.organization.split()[0].title())
     result = Recipient(
         firstname='Technical',
-        lastname='Contact - {}'.format(nonalpha)
+        lastname='Contact - {}'.format(alphanumeric)
         )
+    return result
+
+
+def campaign_files(_campaign):
+    """Create the names of files used to track the email campaign.
+
+    Args:
+        _campaign: Campaign name
+
+    Returns:
+        result: Campaign object
+
+    """
+    # Initialize key variables
+    Campaign = namedtuple(
+        'Campaign', 'history_file thunderbird_file campaign cache_directory')
+    regex = re.compile('[^A-Za-z0-9 ]+')
+    directory = os.path.abspath(os.path.expanduser('~/tmp/rain/campaigns'))
+
+    # Create directory if it doesn't already exist
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+
+    # Create standardized campaign name
+    campaign = ''.join([_.title() for _ in regex.sub(' ', _campaign).split()])
+
+    # Create the cache directory where the emails will be stored
+    cache_directory = '{}{}{}'.format(directory, os.sep, campaign)
+    pathlib.Path(cache_directory).mkdir(parents=True, exist_ok=True)
+
+    # Return
+    result = Campaign(
+        history_file='{}{}{}-history.db'.format(directory, os.sep, campaign),
+        thunderbird_file='{}{}{}-thunderbird.entries'.format(
+            directory, os.sep, campaign),
+        cache_directory=cache_directory,
+        campaign=campaign
+    )
     return result

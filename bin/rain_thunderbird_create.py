@@ -32,9 +32,11 @@ def main():
     # Get the CLI arguments
     args = cli()
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
-    output_file = os.path.abspath(os.path.expanduser(args.output_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
-    history_file = os.path.abspath(os.path.expanduser(args.history_file))
+
+    # Determine the output filename
+    _campaign = lib_email.campaign_files(args.campaign)
+    output_file = _campaign.thunderbird_file
 
     # Log start
     log_message = 'Starting Thunderbird file creation job'
@@ -50,7 +52,7 @@ def main():
 
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
-        history_file, output_file, body_file, args.subject, args.sender)
+        args.campaign, body_file, args.subject, args.sender)
 
     # Process GOATs
     label(output_file, 'Goats')
@@ -124,22 +126,37 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--subject', type=str, required=True)
+        '--subject', type=str, required=True,
+        help='Subject of email to be sent.')
     parser.add_argument(
-        '--sender', type=str, required=True)
+        '--sender', type=str, required=True,
+        help='''\
+Thunderbird sender in format "Firstname Lastname <email@example.com>". When \
+the Thunderbird client has more than one account, this information is used \
+to determine the account to use when sending.''')
     parser.add_argument(
-        '--human_file', type=str, required=True)
+        '--human_file', type=str, required=True,
+        help='Scraper TSV file containing contacts.')
+    parser.add_argument(
+        '--body_file', type=str, required=True,
+        help='''\
+HTML file containing the message to be sent. This file contain the string \
+"XXXXXXXXXX" to allow the easy search and replace of the contact name.''')
+    parser.add_argument(
+        '--campaign', type=str, required=True,
+        help='''\
+Name of the email campaign. This is used to create a history file to help \
+prevent duplicate Thunderbird command entries when repeatedly running \
+this script. It is also used to generate the Thunderbird output file name.''')
     parser.add_argument(
         '--output_file', type=str,
-        default='~/tmp/rain/Thunderbird-Output.entries')
+        default='~/tmp/rain/Thunderbird-Output.entries',
+        help='Output file containing Thunderbird commands for sending emails')
+
     parser.add_argument(
-        '--history_file', type=str,
-        default='~/tmp/rain/Thunderbird-History.db')
-    parser.add_argument(
-        '--body_file', type=str,
-        default='~/tmp/rain/Thunderbird-Body.txt')
-    parser.add_argument(
-        '--states', type=str)
+        '--states', type=str,
+        help='''\
+Names of states to include when generating Thunderbird email lists''')
 
     # Parse and return
     args = parser.parse_args()
