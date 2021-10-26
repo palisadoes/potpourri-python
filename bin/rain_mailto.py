@@ -36,7 +36,7 @@ def main():
     history_file = os.path.abspath(os.path.expanduser(args.history_file))
 
     # Log start
-    log_message = 'Starting vote estimae job'
+    log_message = 'Starting Mailto job'
     log.log2debug(3000, log_message)
 
     # Get human records
@@ -68,7 +68,7 @@ def main():
             generator(mailto, citizens)
 
     # Log stop
-    log_message = 'Vote estimate job complete'
+    log_message = 'Mailto estimate job complete'
     log.log2debug(3001, log_message)
 
 
