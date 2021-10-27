@@ -24,7 +24,8 @@ class Thunderbird():
     """Class to generate Thunderbird records."""
 
     def __init__(
-            self, campaign, body_file, subject, sender, cache_directory=None):
+            self, campaign, body_file, subject, sender,
+            cache_directory=None, attachment=None):
         """Initialize the class.
 
         Args:
@@ -33,6 +34,7 @@ class Thunderbird():
             subject: Subject of email
             sender: Sender
             cache_directory: Directory where we are caching data
+            attachment: Name of file to attach to the email
 
         Returns:
             None
@@ -43,6 +45,7 @@ class Thunderbird():
             campaign, cache_directory=cache_directory)
         self._subject = subject
         self._sender = sender
+        self._attachment = attachment
 
         # Read body_file into a string
         with open(body_file, 'r') as fh_:
@@ -63,6 +66,12 @@ class Thunderbird():
         emails = []
         valids = []
         lines = []
+
+        # Define the attachment to use
+        if bool(self._attachment) is True:
+            attachment = ",attachment='{}'".format(self._attachment)
+        else:
+            attachment = ''
 
         # Get emails previously sent
         if os.path.isfile(self._campaign.history_file) is True:
@@ -104,9 +113,11 @@ to='{0} {1} <{2}>',\
 from='{3}',\
 subject='{4}',\
 message='{5}'\
+{6}
 "\
 '''.format(
-    f_name, l_name, person.email, self._sender, self._subject, filepath)
+    f_name, l_name, person.email, self._sender,
+    self._subject, filepath, attachment)
             lines.append(command)
 
         # Write to output file

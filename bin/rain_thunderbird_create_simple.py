@@ -34,6 +34,7 @@ def main():
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
     cache_directory = os.path.abspath(os.path.expanduser(args.cache_directory))
+    attachment = os.path.abspath(os.path.expanduser(args.attachment))
 
     # Determine the output filename
     _campaign = lib_email.campaign_files(
@@ -51,7 +52,7 @@ def main():
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
         args.campaign, body_file, args.subject,
-        args.sender, cache_directory=cache_directory)
+        args.sender, cache_directory=cache_directory, attachment=attachment)
 
     # Process Everyone
     label(output_file, 'Everyone Email')
@@ -137,6 +138,9 @@ this script. It is also used to generate the Thunderbird output file name.''')
     parser.add_argument(
         '--cache_directory', type=str,
         help='Cache directory where campaign files are stored.')
+    parser.add_argument(
+        '--attachment', type=str,
+        help='Name of file to attach to emails.')
 
     # Parse and return
     args = parser.parse_args()
