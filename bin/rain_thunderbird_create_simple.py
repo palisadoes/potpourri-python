@@ -42,41 +42,24 @@ def main():
 
     # Log start
     log_message = 'Starting Thunderbird file creation job'
-    log.log2debug(4000, log_message)
+    log.log2debug(6000, log_message)
 
     # Get human records
-    humans_ = humans.Humans(human_file)
+    humans_ = humans.SimpleHumans(human_file)
     everyone = humans_.complete()
-
-    # Filter persons
-    strainer_ = humans.Strainer(everyone)
-    caribbean = strainer_.caribbean()
 
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
         args.campaign, body_file, args.subject,
         args.sender, cache_directory=cache_directory)
 
-    # Process GOATs
-    label(output_file, 'Goats')
-    goats = humans.goats(humans_)
-    generator(thunderbird, goats)
-
-    # Process Caribbean
-    label(output_file, 'Caribbean')
-    generator(thunderbird, caribbean)
-
-    # Process state
-    if bool(args.states) is True:
-        for state in args.states.split(','):
-            # Update the stuff
-            label(output_file, state.upper())
-            citizens = strainer_.state(state.upper(), individuals_only=True)
-            generator(thunderbird, citizens)
+    # Process Everyone
+    label(output_file, 'Everyone Email')
+    generator(thunderbird, everyone)
 
     # Log stop
     log_message = 'Thunderbird file creation job complete'
-    log.log2debug(4001, log_message)
+    log.log2debug(6001, log_message)
 
 
 def label(filename, label_):
@@ -154,10 +137,6 @@ this script. It is also used to generate the Thunderbird output file name.''')
     parser.add_argument(
         '--cache_directory', type=str,
         help='Cache directory where campaign files are stored.')
-    parser.add_argument(
-        '--states', type=str,
-        help='''\
-Names of states to include when generating Thunderbird email lists''')
 
     # Parse and return
     args = parser.parse_args()

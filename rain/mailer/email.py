@@ -23,7 +23,8 @@ from rain.mailer import html
 class Thunderbird():
     """Class to generate Thunderbird records."""
 
-    def __init__(self, campaign, body_file, subject, sender):
+    def __init__(
+            self, campaign, body_file, subject, sender, cache_directory=None):
         """Initialize the class.
 
         Args:
@@ -31,13 +32,15 @@ class Thunderbird():
             body_file: Text file of content to send
             subject: Subject of email
             sender: Sender
+            cache_directory: Directory where we are caching data
 
         Returns:
             None
 
         """
         # Initialize key variables
-        self._campaign = campaign_files(campaign)
+        self._campaign = campaign_files(
+            campaign, cache_directory=cache_directory)
         self._subject = subject
         self._sender = sender
 

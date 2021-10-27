@@ -11,21 +11,21 @@ import pandas as pd
 from rain.mailer import Person
 
 
-class Humans():
+class _Humans():
     """Extract data from Organization."""
 
-    def __init__(self, filename):
+    def __init__(self):
         """Initialize the class.
 
         Args:
-            filename: Name of tsv with humans
+            None
 
         Returns:
             None
 
         """
         # Initialize key variables
-        self._data = _persons(filename)
+        self._data = []
 
     def complete(self):
         """Convert human email file to list of Person objects.
@@ -68,6 +68,42 @@ class Humans():
 
         # Return
         return result
+
+
+class SimpleHumans(_Humans):
+    """Extract data from Organization."""
+
+    def __init__(self, filename):
+        """Initialize the class.
+
+        Args:
+            filename: Name of tsv with humans
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        _Humans.__init__(self)
+        self._data = _simple_persons(filename)
+
+
+class Humans(_Humans):
+    """Extract data from Organization."""
+
+    def __init__(self, filename):
+        """Initialize the class.
+
+        Args:
+            filename: Name of tsv with humans
+
+        Returns:
+            None
+
+        """
+        # Initialize key variables
+        _Humans.__init__(self)
+        self._data = _persons(filename)
 
 
 class Strainer():
@@ -228,6 +264,59 @@ def _persons(filename):
                     state=address[-3].upper(),
                     validated=validated,
                     organization=row['business_org']
+                )
+            )
+
+    # Return
+    return result
+
+
+def _simple_persons(filename):
+    """Convert human email file to list of Person objects.
+
+    Args:
+        filename: Name of tsv with humans
+
+    Returns:
+        result: List of Person objects
+
+    """
+    # Initialize key variables
+    result = []
+    df_ = pd.read_csv(filename, header=0, delimiter='\t')
+
+    # Convert Nan to None
+    df_ = df_.where(pd.notnull(df_), None)
+
+    # Create 'firstname' and 'lastname' columns
+    df_['lastname'] = df_['Name'].str.split().str[-1]
+    df_['firstname'] = df_['Name'].str.split().str[0]
+
+    # Create Person objects
+    for _, row in df_.iterrows():
+        # Trim names
+        firstname = row[
+            'firstname'].strip() if bool(row['firstname']) else None
+        lastname = row[
+            'lastname'].strip() if bool(row['lastname']) else None
+        email = row['Email'].strip().lower() if bool(row['Email']) else None
+
+        # Skip unwanted email addresses
+        if _email_ok(email) is False:
+            continue
+
+        # Add to dict
+        if bool(email) is True:
+            result.append(
+                Person(
+                    firstname=firstname.title(),
+                    lastname=lastname.title(),
+                    email=email.lower(),
+                    individual=True,
+                    country=None,
+                    state=None,
+                    validated=True,
+                    organization=None
                 )
             )
 
