@@ -7,3 +7,5 @@ Person = namedtuple(
 organization''')
 Mail = namedtuple('Mail', 'sender receiver subject image body')
 MailAuth = namedtuple('MailAuth', 'username password')
+
+CACHE_DIRECTORY = '~/tmp/rain/campaigns'

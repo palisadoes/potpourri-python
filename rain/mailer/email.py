@@ -16,6 +16,7 @@ from collections import namedtuple
 
 # Application imports
 from rain import log
+from rain.mailer import CACHE_DIRECTORY
 from rain.mailer import html
 
 
@@ -316,11 +317,12 @@ def _recipient(person):
     return result
 
 
-def campaign_files(_campaign):
+def campaign_files(_campaign, cache_directory=None):
     """Create the names of files used to track the email campaign.
 
     Args:
         _campaign: Campaign name
+        cache_directory: Directory where the campaign files are stored.
 
     Returns:
         result: Campaign object
@@ -330,24 +332,27 @@ def campaign_files(_campaign):
     Campaign = namedtuple(
         'Campaign', 'history_file thunderbird_file campaign cache_directory')
     regex = re.compile('[^A-Za-z0-9 ]+')
-    directory = os.path.abspath(os.path.expanduser('~/tmp/rain/campaigns'))
+    if bool(cache_directory) is False:
+        cache_directory = os.path.abspath(os.path.expanduser(CACHE_DIRECTORY))
 
     # Create directory if it doesn't already exist
-    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    pathlib.Path(cache_directory).mkdir(parents=True, exist_ok=True)
 
     # Create standardized campaign name
     campaign = ''.join([_.title() for _ in regex.sub(' ', _campaign).split()])
 
     # Create the cache directory where the emails will be stored
-    cache_directory = '{}{}{}'.format(directory, os.sep, campaign)
-    pathlib.Path(cache_directory).mkdir(parents=True, exist_ok=True)
+    campaign_cache_directory = '{}{}{}'.format(
+        cache_directory, os.sep, campaign)
+    pathlib.Path(campaign_cache_directory).mkdir(parents=True, exist_ok=True)
 
     # Return
     result = Campaign(
-        history_file='{}{}{}-history.db'.format(directory, os.sep, campaign),
+        history_file='{}{}{}-history.db'.format(
+            cache_directory, os.sep, campaign),
         thunderbird_file='{}{}{}-thunderbird.entries'.format(
-            directory, os.sep, campaign),
-        cache_directory=cache_directory,
+            cache_directory, os.sep, campaign),
+        cache_directory=campaign_cache_directory,
         campaign=campaign
     )
     return result

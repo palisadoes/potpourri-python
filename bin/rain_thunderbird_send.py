@@ -20,7 +20,6 @@ else:
     sys.exit(2)
 
 # Library imports
-from rain.mailer import Person, MailAuth, Mail
 from rain.mailer import email as lib_email
 from rain import log
 
@@ -33,7 +32,8 @@ def main():
 
     # Get the CLI arguments
     args = cli()
-    _campaign = lib_email.campaign_files(args.campaign)
+    _campaign = lib_email.campaign_files(
+        args.campaign, cache_directory=args.cache_directory)
     input_file = _campaign.thunderbird_file
 
     # Log start
@@ -83,6 +83,9 @@ def cli():
 Name of the email campaign. This is used to determine the name of the \
 Thunderbird file to ingest.'''
         )
+    parser.add_argument(
+        '--cache_directory', type=str,
+        help='Cache directory where campaign files are stored.')
 
     # Parse and return
     args = parser.parse_args()

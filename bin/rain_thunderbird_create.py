@@ -35,7 +35,8 @@ def main():
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
 
     # Determine the output filename
-    _campaign = lib_email.campaign_files(args.campaign)
+    _campaign = lib_email.campaign_files(
+        args.campaign, cache_directory=args.cache_directory)
     output_file = _campaign.thunderbird_file
 
     # Log start
@@ -149,10 +150,8 @@ Name of the email campaign. This is used to create a history file to help \
 prevent duplicate Thunderbird command entries when repeatedly running \
 this script. It is also used to generate the Thunderbird output file name.''')
     parser.add_argument(
-        '--output_file', type=str,
-        default='~/tmp/rain/Thunderbird-Output.entries',
-        help='Output file containing Thunderbird commands for sending emails')
-
+        '--cache_directory', type=str,
+        help='Cache directory where campaign files are stored.')
     parser.add_argument(
         '--states', type=str,
         help='''\
