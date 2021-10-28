@@ -113,8 +113,7 @@ to='{0} {1} <{2}>',\
 from='{3}',\
 subject='{4}',\
 message='{5}'\
-{6}
-"\
+{6}"\
 '''.format(
     f_name, l_name, person.email, self._sender,
     self._subject, filepath, attachment)
