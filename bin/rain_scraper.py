@@ -58,9 +58,10 @@ class Org():
         """
         # Initialize key variables
         Business = namedtuple(
-            'Business', 'handle org address kind registration')
+            'Business', 'handle org address kind registration updated')
         result = None
         registration = None
+        updated = None
 
         # Get org data
         handle = self._data.get('handle')
@@ -71,6 +72,8 @@ class Org():
             for event in events:
                 if event.get('eventAction') == 'registration':
                     registration = event.get('eventDate')
+                if event.get('eventAction') == 'last changed':
+                    updated = event.get('eventDate')
 
         # Get data from vcard
         vcard = self._data['vcardArray'][1]
@@ -87,7 +90,7 @@ class Org():
         # Get name and email
         result = Business(
             handle=handle, address=address, org=org,
-            kind=kind, registration=registration)
+            kind=kind, registration=registration, updated=updated)
 
         # Return
         return result
@@ -148,7 +151,7 @@ class Org():
         """
         # Initialize key variables
         OrgData = namedtuple(
-            'OrgData', 'handle org address kind registration contacts')
+            'OrgData', 'handle org address kind registration updated contacts')
         contacts = self.contacts()
         business = self.business()
         result = OrgData(
@@ -157,6 +160,7 @@ class Org():
             address=business.address,
             kind=business.kind,
             registration=business.registration,
+            updated=business.updated,
             contacts=contacts
         )
         return result
@@ -184,8 +188,8 @@ def main():
 
         # Create header row
         linewriter.writerow(
-            ['business_org', 'business_address',
-             'business_handle', 'business_kind', 'business_registration',
+            ['business_org', 'business_address', 'business_handle',
+             'business_kind', 'business_registration', 'business_updated',
              'contact_name', 'contact_email',
              'contact_kind', 'contact_status']
         )
@@ -210,6 +214,7 @@ def main():
                     business.handle,
                     business.kind,
                     business.registration,
+                    business.updated,
                     contact.name,
                     contact.email,
                     contact.kind,
@@ -243,7 +248,7 @@ def get_data(url):
     log.log2debug(2003, log_message)
 
     # Contientious sleep
-    time.sleep(random.random() * 10)
+    time.sleep(random.random() * 5)
 
     # Read data
     try:
