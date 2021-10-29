@@ -358,7 +358,7 @@ def _is_individual(firstname, lastname, email, contact_kind):
         'infra', 'billing', 'ltd', 'partner', 'registr', 'albuquerque',
         'legal', 'corp', 'founder', 'domain', 'internet', 'analyst', 'licence',
         'ciso', 'office', 'operator', 'procure', 'register', 'notify',
-        'ipaddr', 'isp', 'pilot', 'company', 'peer', 'coord',
+        'ipaddr', 'isp', 'pilot', 'company', 'peer', 'coord', 'info@',
         'scanning', 'routing', 'staff', 'internet', 'connect', 'allocation']
     names = ['abuse']
 
