@@ -263,7 +263,7 @@ def _persons(filename):
                 Person(
                     firstname=firstname.title(),
                     lastname=lastname.title(),
-                    email=email.lower(),
+                    email=_fix_email(email),
                     individual=_is_individual(
                         firstname, lastname, email, contact_kind),
                     country=address[-1].title(),
@@ -318,7 +318,7 @@ def _simple_persons(filename):
                 Person(
                     firstname=firstname.title(),
                     lastname=lastname.title(),
-                    email=email.lower(),
+                    email=_fix_email(email),
                     individual=True,
                     country=None,
                     state=None,
@@ -421,6 +421,25 @@ def _too_old(datestring, year='2000'):
     # Return
     if bool(datestring):
         result = datestring < year
+    return result
+
+
+def _fix_email(email):
+    """Remove '+' sign from email address.
+
+    Args:
+        email: Email address
+
+    Returns:
+        result: Fixed email address
+
+    """
+    # Initialize key variables
+    result = email.lower().strip()
+
+    # Return
+    if '+' in email.lower().strip():
+        result = '{}@{}'.format(email.split('+')[0], email.split('@')[-1])
     return result
 
 
