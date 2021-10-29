@@ -282,7 +282,7 @@ def get_data(url):
     log.log2debug(2003, log_message)
 
     # Contientious sleep
-    time.sleep(random.random() * 5)
+    time.sleep(1 + (random.random() * 2))
 
     # Read data
     try:
