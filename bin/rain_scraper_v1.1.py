@@ -61,7 +61,6 @@ class Org():
             'Business', 'handle org address kind registration updated')
         result = None
         registration = None
-        updated = None
 
         # Get org data
         handle = self._data.get('handle')
@@ -72,8 +71,6 @@ class Org():
             for event in events:
                 if event.get('eventAction') == 'registration':
                     registration = event.get('eventDate')
-                if event.get('eventAction') == 'last changed':
-                    updated = event.get('eventDate')
 
         # Get data from vcard
         vcard = self._data['vcardArray'][1]
@@ -90,7 +87,7 @@ class Org():
         # Get name and email
         result = Business(
             handle=handle, address=address, org=org,
-            kind=kind, registration=registration, updated=updated)
+            kind=kind, registration=registration, updated=self.last_updated())
 
         # Return
         return result
@@ -138,6 +135,42 @@ class Org():
 
         # Return
         return results
+
+    def last_updated(self):
+        """Get the most recent time that any entity was updated.
+
+        Args:
+            None
+
+        Returns:
+            result: date
+
+        """
+        # Get all organization events
+        all_events = self._data['events']
+        dates = []
+        result = None
+
+        # Get related events
+        keys = ['entities', 'autnums', 'networks']
+        for key in keys:
+            items = self._data.get(key)
+            if bool(items) is True:
+                for item in items:
+                    events = item.get('events')
+                    if bool(events) is True:
+                        for event in events:
+                            all_events.append(events)
+
+        # Get the dates from events
+        for event in all_events:
+            date_ = event.get('eventDate')
+            if bool(date_) is True:
+                dates.append(date_)
+
+        # Get the highest value date
+        result = max(dates) if bool(dates) else None
+        return result
 
     def everything(self):
         """Get combined data.
@@ -223,6 +256,7 @@ def main():
 
                 # Flush to disk immediately
                 fh_.flush()
+            break
 
     # Log stop
     log_message = 'Job complete'

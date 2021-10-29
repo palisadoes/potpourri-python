@@ -263,7 +263,8 @@ def _persons(filename):
                     country=address[-1].title(),
                     state=address[-3].upper(),
                     validated=validated,
-                    organization=row['business_org']
+                    organization=row['business_org'],
+                    organization_updated=row['business_updated']
                 )
             )
 
@@ -316,7 +317,8 @@ def _simple_persons(filename):
                     country=None,
                     state=None,
                     validated=True,
-                    organization=None
+                    organization=None,
+                    organization_updated=None
                 )
             )
 
