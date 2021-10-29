@@ -1,7 +1,6 @@
 """Application module to manage human file management."""
 
 # Standard imports
-import sys
 import re
 
 # PIP imports
@@ -9,6 +8,7 @@ import pandas as pd
 
 # Library imports
 from rain.mailer import Person
+from rain import misc
 
 
 class _Humans():
@@ -63,8 +63,6 @@ class _Humans():
         # Create a list of unique tuples
         for _, value in sorted(uniques.items()):
             result.append(value)
-            print(value)
-        sys.exit(0)
 
         # Return
         return result
@@ -170,12 +168,13 @@ class Strainer():
                         result.append(person)
         return result
 
-    def state(self, _state, individuals_only=False):
+    def state(self, _state, individuals_only=False, timestamp=None):
         """Return all persons from a sprecific state.
 
         Args:
             _state: Country to select
             individuals_only: Only return individuals if True
+            timestamp: Filter by timestamps > this value if not None
 
         Returns:
             result: List of Persons from the state
@@ -187,6 +186,13 @@ class Strainer():
         # Process and return
         for person in self._persons:
             if person.state == _state:
+                # Filter by timestamp
+                if bool(timestamp) is True:
+                    ts_updated = misc.timestamp(person.organization_updated)
+                    if timestamp > ts_updated:
+                        continue
+
+                # Update the records
                 if bool(individuals_only) is False:
                     result.append(person)
                 else:
