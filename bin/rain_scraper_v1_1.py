@@ -158,9 +158,8 @@ class Org():
             if bool(items) is True:
                 for item in items:
                     events = item.get('events')
-                    if bool(events) is True:
-                        for event in events:
-                            all_events.append(events)
+                    if bool(events) is True and isinstance(events, list):
+                        all_events.extend(events)
 
         # Get the dates from events
         for event in all_events:
@@ -256,7 +255,6 @@ def main():
 
                 # Flush to disk immediately
                 fh_.flush()
-            break
 
     # Log stop
     log_message = 'Job complete'
@@ -289,15 +287,15 @@ def get_data(url):
         with urllib.request.urlopen(url) as response:
             html = response.read()
 
-        if bool(html) is True:
-            # Convert data to dict
-            data = json.loads(html)
-            org = Org(data)
-            result = org.everything()
     except:
         pass
 
-    print(result)
+    # Process data
+    if bool(html) is True:
+        # Convert data to dict
+        data = json.loads(html)
+        org = Org(data)
+        result = org.everything()
 
     # Return
     return result
