@@ -287,7 +287,7 @@ def get_data(url):
         count += 1
 
         # Conscientious sleep
-        time.sleep(1 + (random.random() * count))
+        time.sleep(2 + (random.random() * count))
 
         # Read data
         try:
