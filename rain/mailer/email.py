@@ -109,7 +109,7 @@ class Thunderbird():
             # Create entry for output file
             command = '''\
 /usr/bin/thunderbird -compose "\
-to='{0} {1} <{2}>',\
+to='\\"{0} {1}\\"<{2}>',\
 from='{3}',\
 subject='{4}',\
 message='{5}'\

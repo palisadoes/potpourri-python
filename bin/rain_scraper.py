@@ -58,7 +58,7 @@ class Org():
         """
         # Initialize key variables
         Business = namedtuple(
-            'Business', 'handle org address kind registration')
+            'Business', 'handle org address kind registration updated')
         result = None
         registration = None
 
@@ -87,7 +87,7 @@ class Org():
         # Get name and email
         result = Business(
             handle=handle, address=address, org=org,
-            kind=kind, registration=registration)
+            kind=kind, registration=registration, updated=self.last_updated())
 
         # Return
         return result
@@ -136,6 +136,41 @@ class Org():
         # Return
         return results
 
+    def last_updated(self):
+        """Get the most recent time that any entity was updated.
+
+        Args:
+            None
+
+        Returns:
+            result: date
+
+        """
+        # Get all organization events
+        all_events = self._data['events']
+        dates = []
+        result = None
+
+        # Get related events
+        keys = ['entities', 'autnums', 'networks']
+        for key in keys:
+            items = self._data.get(key)
+            if bool(items) is True:
+                for item in items:
+                    events = item.get('events')
+                    if bool(events) is True and isinstance(events, list):
+                        all_events.extend(events)
+
+        # Get the dates from events
+        for event in all_events:
+            date_ = event.get('eventDate')
+            if bool(date_) is True:
+                dates.append(date_)
+
+        # Get the highest value date
+        result = max(dates) if bool(dates) else None
+        return result
+
     def everything(self):
         """Get combined data.
 
@@ -148,7 +183,7 @@ class Org():
         """
         # Initialize key variables
         OrgData = namedtuple(
-            'OrgData', 'handle org address kind registration contacts')
+            'OrgData', 'handle org address kind registration updated contacts')
         contacts = self.contacts()
         business = self.business()
         result = OrgData(
@@ -157,6 +192,7 @@ class Org():
             address=business.address,
             kind=business.kind,
             registration=business.registration,
+            updated=business.updated,
             contacts=contacts
         )
         return result
@@ -184,8 +220,8 @@ def main():
 
         # Create header row
         linewriter.writerow(
-            ['business_org', 'business_address',
-             'business_handle', 'business_kind', 'business_registration',
+            ['business_org', 'business_address', 'business_handle',
+             'business_kind', 'business_registration', 'business_updated',
              'contact_name', 'contact_email',
              'contact_kind', 'contact_status']
         )
@@ -210,6 +246,7 @@ def main():
                     business.handle,
                     business.kind,
                     business.registration,
+                    business.updated,
                     contact.name,
                     contact.email,
                     contact.kind,
@@ -237,28 +274,39 @@ def get_data(url):
     # Initialize key variables
     result = None
     html = None
+    count = 0
+    max_count = 5
 
     # Log
     log_message = 'Processing {}'.format(url)
     log.log2debug(2003, log_message)
 
-    # Contientious sleep
-    time.sleep(random.random() * 10)
+    # Retry up to 5 times
+    while count <= max_count:
+        # Loop counter
+        count += 1
 
-    # Read data
-    try:
-        with urllib.request.urlopen(url) as response:
-            html = response.read()
+        # Conscientious sleep
+        time.sleep(1 + (random.random() * count))
 
+        # Read data
+        try:
+            with urllib.request.urlopen(url) as response:
+                html = response.read()
+
+        except:
+            pass
+
+        # Stop if we get data
         if bool(html) is True:
-            # Convert data to dict
-            data = json.loads(html)
-            org = Org(data)
-            result = org.everything()
-    except:
-        pass
+            break
 
-    print(result)
+    # Process data
+    if bool(html) is True:
+        # Convert data to dict
+        data = json.loads(html)
+        org = Org(data)
+        result = org.everything()
 
     # Return
     return result

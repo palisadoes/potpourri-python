@@ -168,13 +168,16 @@ class Strainer():
                         result.append(person)
         return result
 
-    def state(self, _state, individuals_only=False, timestamp=None):
+    def state(self, _state,
+              individuals_only=False, timestamp=None, strict=False):
         """Return all persons from a sprecific state.
 
         Args:
             _state: Country to select
             individuals_only: Only return individuals if True
             timestamp: Filter by timestamps > this value if not None
+            strict: Only privately held organizations if True. This uses very
+                conservative criteria, '.com' and '.net' email TLDs
 
         Returns:
             result: List of Persons from the state
@@ -182,10 +185,17 @@ class Strainer():
         """
         # Initialize key variables
         result = []
+        strict_domains = ['.net', '.com']
 
         # Process and return
         for person in self._persons:
             if person.state == _state:
+                # Filter by email domain
+                domain = '.{}'.format(person.email.split('.')[-1])
+                if bool(strict) is True:
+                    if domain not in strict_domains:
+                        continue
+
                 # Filter by timestamp
                 if bool(timestamp) is True:
                     ts_updated = misc.timestamp(person.organization_updated)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Sends email using Thunderbird."""
+"""Creates a file containing a list of Thunderbird CLI email commands."""
 
 # Standard imports
 import argparse
@@ -35,7 +35,9 @@ def main():
     args = cli()
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
-    cache_directory = os.path.abspath(os.path.expanduser(args.cache_directory))
+    if bool(args.cache_directory):
+        cache_directory = os.path.abspath(
+            os.path.expanduser(args.cache_directory))
 
     # Get timestamp
     if bool(args.date) is True:
@@ -78,7 +80,8 @@ def main():
             # Update the stuff
             label(output_file, state.upper())
             citizens = strainer_.state(
-                state.upper(), individuals_only=True, timestamp=timestamp)
+                state.upper(), individuals_only=True,
+                timestamp=timestamp, strict=True)
             generator(thunderbird, citizens)
 
     # Log stop
@@ -166,7 +169,7 @@ this script. It is also used to generate the Thunderbird output file name.''')
         help='''\
 Names of states to include when generating Thunderbird email lists''')
     parser.add_argument(
-        '--date', type=int,
+        '--date', type=str,
         help='Filter records last updated after this YYYY-MM-DD date.')
 
     # Parse and return
