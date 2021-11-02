@@ -51,11 +51,12 @@ class Thunderbird():
         with open(body_file, 'r') as fh_:
             self._body = fh_.read()
 
-    def append(self, persons):
+    def append(self, persons, spanish=False):
         """Send mail.
 
         Args:
             persons: List of person objects
+            spanish: True if spanish greeting is required
 
 
         Returns:
@@ -90,7 +91,7 @@ class Thunderbird():
                 recipient = _recipient(person)
                 f_name = recipient.firstname
                 l_name = recipient.lastname
-                greeting = 'Hello'
+                greeting = 'Hello' if bool(spanish) else 'Saludos'
             else:
                 f_name = person.firstname
                 l_name = person.lastname

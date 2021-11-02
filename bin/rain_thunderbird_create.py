@@ -82,7 +82,7 @@ def main():
             citizens = strainer_.state(
                 state.upper(), individuals_only=True,
                 timestamp=timestamp, strict=True)
-            generator(thunderbird, citizens)
+            generator(thunderbird, citizens, spanish=args.spanish)
 
     # Log stop
     log_message = 'Thunderbird file creation job complete'
@@ -104,12 +104,13 @@ def label(filename, label_):
         fh_.write('# {}\n'.format(label_.upper()))
 
 
-def generator(thunderbird, persons):
+def generator(thunderbird, persons, spanish=False):
     """Generate thunderbird entries for Person.
 
     Args:
         thunderbird: email.Thunderbird object
         persons: List of person objects
+        spanish: True if spanish greeting is required
 
     Returns:
         None
@@ -123,7 +124,7 @@ def generator(thunderbird, persons):
     targets = list(uniques.values())
 
     # Update files
-    thunderbird.append(targets)
+    thunderbird.append(targets, spanish=spanish)
 
 
 def cli():
@@ -171,6 +172,8 @@ Names of states to include when generating Thunderbird email lists''')
     parser.add_argument(
         '--date', type=str,
         help='Filter records last updated after this YYYY-MM-DD date.')
+    parser.add_argument(
+        '--spanish', help='Use Spanish greeting if used.', action='store_true')
 
     # Parse and return
     args = parser.parse_args()
