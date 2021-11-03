@@ -66,13 +66,15 @@ def main():
         args.sender, cache_directory=cache_directory)
 
     # Process GOATs
-    label(output_file, 'Goats')
-    goats = humans.goats(humans_)
-    generator(thunderbird, goats)
+    if not args.spanish:
+        label(output_file, 'Goats')
+        goats = humans.goats(humans_)
+        generator(thunderbird, goats)
 
     # Process Caribbean
-    label(output_file, 'Caribbean')
-    generator(thunderbird, caribbean)
+    if not args.spanish:
+        label(output_file, 'Caribbean')
+        generator(thunderbird, caribbean)
 
     # Process state
     if bool(args.states) is True:
