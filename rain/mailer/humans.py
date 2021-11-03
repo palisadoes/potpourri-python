@@ -198,6 +198,7 @@ class Strainer():
 
                 # Filter by timestamp
                 if bool(timestamp) is True:
+                    # print(person.organization_updated)
                     ts_updated = misc.timestamp(person.organization_updated)
                     if timestamp > ts_updated:
                         continue

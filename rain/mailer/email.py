@@ -92,12 +92,12 @@ class Thunderbird():
                 f_name = recipient.firstname
                 l_name = recipient.lastname
                 greeting = 'Hello' if not bool(
-                    spanish) else 'Estimados señores'
+                    spanish) else 'Estimado Equipo'
             else:
                 f_name = person.firstname
                 l_name = person.lastname
                 greeting = person.firstname if not bool(
-                    spanish) else 'Estimados {}'.format(person.firstname)
+                    spanish) else 'Estimado {}'.format(person.firstname)
 
             # Create a temporary file with the email body
             with tempfile.NamedTemporaryFile(

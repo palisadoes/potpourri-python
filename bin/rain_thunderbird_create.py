@@ -82,7 +82,7 @@ def main():
             # Update the stuff
             label(output_file, state.upper())
             citizens = strainer_.state(
-                state.upper(), individuals_only=True,
+                state.upper(), individuals_only=not bool(args.teams),
                 timestamp=timestamp, strict=True)
             generator(thunderbird, citizens, spanish=args.spanish)
 
@@ -176,6 +176,10 @@ Names of states to include when generating Thunderbird email lists''')
         help='Filter records last updated after this YYYY-MM-DD date.')
     parser.add_argument(
         '--spanish', help='Use Spanish greeting if used.', action='store_true')
+    parser.add_argument(
+        '--teams',
+        help='Process both teams and individuals when specifying states.',
+        action='store_true')
 
     # Parse and return
     args = parser.parse_args()
