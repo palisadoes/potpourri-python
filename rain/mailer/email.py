@@ -88,7 +88,7 @@ class Thunderbird():
         for person in valids:
             # Create first and last names
             if not bool(person.individual):
-                recipient = _recipient(person)
+                recipient = _recipient()
                 f_name = recipient.firstname
                 l_name = recipient.lastname
                 greeting = 'Hello' if not bool(
@@ -183,7 +183,7 @@ class Mailto():
         for person in valids:
             # Create first and last names
             if not bool(person.individual):
-                recipient = _recipient(person)
+                recipient = _recipient()
                 f_name = recipient.firstname
                 l_name = recipient.lastname
                 greeting = 'Hello'
@@ -312,11 +312,11 @@ def _address(person):
     return result
 
 
-def _recipient(person):
+def _recipient():
     """Strip non alphanumeric characters.
 
     Args:
-        person: Person object
+        None
 
     Returns:
         result: alphanumeric string
@@ -324,11 +324,11 @@ def _recipient(person):
     """
     # Initialize key variables
     Recipient = namedtuple('Recipient', 'firstname lastname')
-    regex = re.compile('[^a-zA-Z]')
-    alphanumeric = regex.sub('', person.organization.split()[0].title())
+    # regex = re.compile('[^a-zA-Z]')
+    # alphanumeric = regex.sub('', person.organization.split()[0].title())
     result = Recipient(
         firstname='Technical',
-        lastname='Team - {}'.format(alphanumeric)
+        lastname='Team'
         )
     return result
 
