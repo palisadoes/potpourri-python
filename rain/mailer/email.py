@@ -81,6 +81,10 @@ class Thunderbird():
 
         # Filter emails
         for person in persons:
+            # Don't prepare to send email to obvious support address
+            if _support(person) is True:
+                continue
+
             if person.email not in emails:
                 valids.append(person)
 
@@ -293,6 +297,31 @@ def send(auth, mail):
     return success
 
 
+def _support(person):
+    """Determine whether person could generate a support ticket.
+
+    Args:
+        person: Person object
+
+    Returns:
+        result: Support contact if True
+
+    """
+    # Initialize key variables
+    result = False
+    prefixes = ['support']
+    for prefix in prefixes:
+        if prefix.lower() in person.firstname.lower():
+            result = True
+        if prefix.lower() in person.lastname.lower():
+            result = True
+        if prefix.lower() in person.email.lower():
+            result = True
+
+    # Return
+    return result
+
+
 def _address(person):
     """Create address object.
 
@@ -304,8 +333,8 @@ def _address(person):
 
     """
     # Initialize key variables
-    f_name = person.firstname if bool(person.firstname) else 'Ar''in'
-    l_name = person.lastname if bool(person.lastname) else 'Contact'
+    f_name = person.firstname if bool(person.firstname) else 'Technical'
+    l_name = person.lastname if bool(person.lastname) else 'Team'
 
     # Return
     result = formataddr(('{} {}'.format(f_name, l_name), person.email))
@@ -324,8 +353,6 @@ def _recipient():
     """
     # Initialize key variables
     Recipient = namedtuple('Recipient', 'firstname lastname')
-    # regex = re.compile('[^a-zA-Z]')
-    # alphanumeric = regex.sub('', person.organization.split()[0].title())
     result = Recipient(
         firstname='Technical',
         lastname='Team'
@@ -355,7 +382,7 @@ def campaign_files(_campaign, cache_directory=None):
     pathlib.Path(cache_directory).mkdir(parents=True, exist_ok=True)
 
     # Create standardized campaign name
-    campaign = ''.join([_.title() for _ in regex.sub(' ', _campaign).split()])
+    campaign = ''.join([_ for _ in regex.sub(' ', _campaign).split()])
 
     # Create the cache directory where the emails will be stored
     campaign_cache_directory = '{}{}{}'.format(
