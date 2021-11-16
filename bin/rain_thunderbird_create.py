@@ -58,23 +58,35 @@ def main():
 
     # Filter persons
     strainer_ = humans.Strainer(everyone)
-    caribbean = strainer_.caribbean()
+
+    # for i in strainer_.smallfry(individuals_only=True):
+    #     print(i)
+    # sys.exit()
 
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
         args.campaign, body_file, args.subject,
         args.sender, cache_directory=cache_directory)
 
-    # Process GOATs
+    # process Anglophone organizations
     if not args.spanish:
-        label(output_file, 'Goats')
-        goats = humans.goats(humans_)
-        generator(thunderbird, goats)
+        # Process GOATs
+        # label(output_file, 'Goats')
+        # goats = humans.goats(humans_)
+        # generator(thunderbird, goats)
+        #
+        # # Process Caribbean
+        # label(output_file, 'Caribbean')
+        # generator(thunderbird, strainer_.caribbean())
 
-    # Process Caribbean
-    if not args.spanish:
-        label(output_file, 'Caribbean')
-        generator(thunderbird, caribbean)
+        # Process Educational
+        label(output_file, 'Educational')
+        generator(thunderbird, strainer_.edu(individuals_only=True))
+
+        # Process states/provinces with few organizations
+        label(output_file, 'SmallFry')
+        generator(thunderbird, strainer_.smallfry(
+            individuals_only=True, strict=True))
 
     # Process state
     if bool(args.states) is True:

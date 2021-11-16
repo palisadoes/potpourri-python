@@ -309,7 +309,7 @@ def _support(person):
     """
     # Initialize key variables
     result = False
-    prefixes = ['support']
+    prefixes = ['support', 'help', 'abuse']
     for prefix in prefixes:
         if prefix.lower() in person.firstname.lower():
             result = True
@@ -382,7 +382,7 @@ def campaign_files(_campaign, cache_directory=None):
     pathlib.Path(cache_directory).mkdir(parents=True, exist_ok=True)
 
     # Create standardized campaign name
-    campaign = ''.join([_ for _ in regex.sub(' ', _campaign).split()])
+    campaign = ''.join([_.title() for _ in regex.sub(' ', _campaign).split()])
 
     # Create the cache directory where the emails will be stored
     campaign_cache_directory = '{}{}{}'.format(

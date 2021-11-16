@@ -119,6 +119,9 @@ class Strainer():
         """
         # Initialize key variables
         self._persons = persons
+        self._strict_domains = [
+            '.net', '.com', '.edu', '.us', '.co', '.cloud', '.io', '.fm'
+        ]
 
     def caribbean(self):
         """Return all Caribbean persons.
@@ -145,7 +148,7 @@ class Strainer():
         return result
 
     def country(self, _country, individuals_only=False):
-        """Return all persons from a sprecific country.
+        """Return all persons from a specific country.
 
         Args:
             _country: Country to select
@@ -170,7 +173,7 @@ class Strainer():
 
     def state(self, _state,
               individuals_only=False, timestamp=None, strict=False):
-        """Return all persons from a sprecific state.
+        """Return all persons from a specific state.
 
         Args:
             _state: Country to select
@@ -185,15 +188,13 @@ class Strainer():
         """
         # Initialize key variables
         result = []
-        strict_domains = ['.net', '.com']
 
         # Process and return
         for person in self._persons:
             if person.state == _state:
                 # Filter by email domain
-                domain = '.{}'.format(person.email.split('.')[-1])
                 if bool(strict) is True:
-                    if domain not in strict_domains:
+                    if self._skip(person):
                         continue
 
                 # Filter by timestamp
@@ -209,6 +210,86 @@ class Strainer():
                 else:
                     if person.individual is True:
                         result.append(person)
+        return result
+
+    def edu(self, individuals_only=False):
+        """Return all persons related to educational institutions.
+
+        Args:
+            individuals_only: Only return individuals if True
+
+        Returns:
+            result: List of Persons
+
+        """
+        # Initialize key variables
+        result = []
+
+        # Process and return
+        for person in self._persons:
+            if person.email.lower().endswith('.edu'):
+                # Update the records
+                if bool(individuals_only) is False:
+                    result.append(person)
+                else:
+                    if person.individual is True:
+                        result.append(person)
+        return result
+
+    def smallfry(self, individuals_only=False, threshold=30, strict=False):
+        """Return all persons related to educational institutions.
+
+        Args:
+            individuals_only: Only return individuals if True
+            threshold: Only process states with at least this number of orgs.
+            strict: Only privately held organizations if True.
+
+        Returns:
+            result: List of Persons
+
+        """
+        # Initialize key variables
+        result = []
+
+        # Get the histogram of persons
+        lookup = histogram(self._persons, individuals_only=individuals_only)
+
+        # Process data
+        for person in self._persons:
+            # Filter by email domain
+            if bool(strict) is True:
+                if self._skip(person):
+                    continue
+
+            # Append person to list if under the threshold for the state
+            count = lookup.get(person.state)
+            if bool(count) is True:
+                if count <= threshold:
+                    # Update the records
+                    if bool(individuals_only) is False:
+                        result.append(person)
+                    else:
+                        if person.individual is True:
+                            result.append(person)
+        # Return
+        return result
+
+    def _skip(self, person):
+        """Determine whether the person should be skipped.
+
+        Args:
+            person: Person object
+
+        Returns:
+            result: True if they should be skipped
+
+        """
+        # Initialize key variables
+        result = False
+
+        # Filter by email domain
+        domain = '.{}'.format(person.email.split('.')[-1])
+        result = domain not in self._strict_domains
         return result
 
 
@@ -534,3 +615,49 @@ def goats(humans_):
 
     # Update files
     return targets
+
+
+def histogram(persons, individuals_only=False):
+    """Analyze persons.
+
+    Args:
+        persons: List of Persons objects
+
+    Returns:
+        lookup: Dict keyed by state/province of organization counts
+
+    """
+    # Initialize key variables
+    lookup = {}
+    non_caribbean = []
+
+    # All states except those near Washington DC (DC, MD, VA)
+    states = [
+        'AK', 'AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI',
+        'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'ME', 'MI', 'MN',
+        'MS', 'MO', 'MT', 'NC', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'ND',
+        'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT',
+        'WA', 'WV', 'WI', 'WY'
+    ]
+
+    # All provinces except those near Ottawa (QC)
+    provinces = [
+        'AB', 'BC', 'MB', 'NB', 'NL', 'NT', 'NS', 'NU', 'ON', 'PE', 'SK',
+        'YT'
+    ]
+    non_caribbean.extend(states)
+    non_caribbean.extend(provinces)
+
+    # Process data
+    for person in persons:
+        if bool(individuals_only) is True and person.individual is False:
+            continue
+        if person.state in non_caribbean:
+            found = lookup.get(person.state)
+            if bool(found) is True:
+                lookup[person.state] += 1
+            else:
+                lookup[person.state] = 1
+
+    # Return
+    return lookup
