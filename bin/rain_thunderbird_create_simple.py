@@ -34,7 +34,8 @@ def main():
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
     cache_directory = os.path.abspath(os.path.expanduser(args.cache_directory))
-    attachment = os.path.abspath(os.path.expanduser(args.attachment))
+    attachment = os.path.abspath(
+        os.path.expanduser(args.attachment)) if bool(args.attachment) else None
 
     # Determine the output filename
     _campaign = lib_email.campaign_files(
@@ -123,7 +124,7 @@ the Thunderbird client has more than one account, this information is used \
 to determine the account to use when sending.''')
     parser.add_argument(
         '--human_file', type=str, required=True,
-        help='Scraper TSV file containing contacts.')
+        help='TSV file containing contact names and emails only.')
     parser.add_argument(
         '--body_file', type=str, required=True,
         help='''\
