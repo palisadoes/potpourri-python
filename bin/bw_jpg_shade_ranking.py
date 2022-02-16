@@ -11,10 +11,13 @@ from operator import attrgetter
 from multiprocessing import Pool
 import csv
 import time
+import shutil
+
 
 from PIL import Image
 
 Shade = namedtuple('Shade', 'filepath shade')
+Batch = namedtuple('Batch', 'filepath shade batch')
 
 
 def main():
@@ -31,63 +34,118 @@ def main():
     filepaths = []
     start = time.time()
     args = _args()
-    directory = os.path.expanduser(args.directory)
-    output_filename = os.path.expanduser(args.output_filename)
+    input_directory = os.path.expanduser(args.input_directory)
+    output_directory = os.path.expanduser(args.output_directory)
+    report_filename = os.path.expanduser(args.report_filename)
+
+    # Process source
+    if os.path.isdir(input_directory) is False:
+        print('''\
+Source directory '{}' does not exist.'''.format(input_directory))
+        sys.exit(0)
 
     # Process destination
-    if os.path.isdir(directory) is False:
+    if os.path.isdir(input_directory) is False:
         print('''\
-Destination directory '{}' does not exist.'''.format(directory))
+Destination directory '{}' does not exist.'''.format(input_directory))
         sys.exit(0)
 
     # Get filepaths
-    filepaths = _filepaths(directory)
+    filepaths = _filepaths(input_directory)
 
     # Process
     evaluations = _evaluate(filepaths)
-    _report(evaluations, output_filename)
+    batches = _batch(evaluations)
+    _report(batches, report_filename)
+    _librarian(batches, output_directory)
 
     # Get a clear CLI prompt
     print('Processed : {1} files\nDuration  : {0}s\nOutput    : {2}'.format(
-        round(time.time() - start, 2), len(evaluations), output_filename)
+        round(time.time() - start, 2), len(evaluations), report_filename)
         )
 
 
-def _report(evaluations, output_filename):
+def _librarian(records, output_directory):
+    """Make copies of files according to their batch number.
+
+    Args:
+        records: List of Batch objects
+        output_directory: Name of root directory into which to put the files
+
+    Returns:
+        None
+
+    """
+    # Copy files
+    for record in records:
+        # Create batch directory tree if necessary
+        batch_directory = '{0}{1}photo_book{1}{2}'.format(
+            output_directory, os.sep, str(record.batch).zfill(3))
+        if os.path.isdir(batch_directory) is False:
+            os.makedirs(batch_directory, exist_ok=True)
+
+        dst = '{}{}{}'.format(
+            batch_directory, os.sep, os.path.basename(record.filepath))
+        shutil.copyfile(record.filepath, dst)
+
+
+def _report(records, output_filename):
     """Evaluate the shading of files.
 
     Args:
-        evaluations: List of evaluated Shade objects
+        records: List of Batch objects
         output_filename: Name of file for output
 
     Returns:
         results: List of Shade objects
 
     """
-    # Initialize key variables
-    results = sorted(evaluations, key=attrgetter('shade'))
-    tenth = int(len(results) / 10)
-    count = 0
-    batch = 0
-
     # Create the CSV file
     with open(output_filename, 'w') as fh_:
         writer = csv.writer(fh_, delimiter=',')
         writer.writerow(['Batch', 'Filename', 'Shade'])
 
-        for result in results:
-            # Write the batch number
-            if count == 0:
-                batch += 1
+        # Write file data
+        for record in records:
+            writer.writerow([
+                record.batch, os.path.basename(record.filepath), record.shade])
 
-            # Write file data
-            writer.writerow(
-                [batch, os.path.basename(result.filepath), result.shade])
-            count += 1
 
-            # Reset the count
-            if count == tenth:
-                count = 0
+def _batch(items, batch=10):
+    """Create batches of records for processing.
+
+    Args:
+        items: List of Shade objects
+
+    Returns:
+        results: List of Batch objects
+
+    """
+    # Initialize key variables
+    records = sorted(items, key=attrgetter('shade'))
+    batch_size = int(len(records) / batch)
+    results = []
+    count = 0
+    batch = 0
+
+    # Process records
+    for record in records:
+        # Write the batch number
+        if count == 0:
+            batch += 1
+
+        # Update batch information
+        results.append(
+            Batch(filepath=record.filepath, shade=record.shade, batch=batch)
+        )
+        count += 1
+
+        # Reset the count
+        if count == batch_size:
+            count = 0
+
+    # Return
+    return results
 
 
 def _evaluate(filepaths):
@@ -248,12 +306,17 @@ def _args():
     # Process CLI options
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--directory',
+        '--input_directory',
         required=True,
         type=str,
         help='Directory containing JPG files to process.')
     parser.add_argument(
-        '--output_filename',
+        '--output_directory',
+        required=True,
+        type=str,
+        help='Directory where batched JPG files will be copied.')
+    parser.add_argument(
+        '--report_filename',
         type=str,
         default='/tmp/bw_jpg_shade_ranking.csv',
         help='CSV file for results.')
