@@ -14,6 +14,8 @@ import time
 
 from PIL import Image
 
+Shade = namedtuple('Shade', 'filepath shade')
+
 
 def main():
     """Process data.
@@ -43,18 +45,49 @@ Destination directory '{}' does not exist.'''.format(directory))
 
     # Process
     evaluations = _evaluate(filepaths)
+    _report(evaluations, output_filename)
+
+    # Get a clear CLI prompt
+    print('Processed : {1} files\nDuration  : {0}s\nOutput    : {2}'.format(
+        round(time.time() - start, 2), len(evaluations), output_filename)
+        )
+
+
+def _report(evaluations, output_filename):
+    """Evaluate the shading of files.
+
+    Args:
+        evaluations: List of evaluated Shade objects
+        output_filename: Name of file for output
+
+    Returns:
+        results: List of Shade objects
+
+    """
+    # Initialize key variables
     results = sorted(evaluations, key=attrgetter('shade'))
+    tenth = int(len(results) / 10)
+    count = 0
+    batch = 0
 
     # Create the CSV file
     with open(output_filename, 'w') as fh_:
         writer = csv.writer(fh_, delimiter=',')
-        for result in results:
-            writer.writerow([os.path.basename(result.filepath), result.shade])
+        writer.writerow(['Batch', 'Filename', 'Shade'])
 
-    # Get a clear CLI prompt
-    print('Processed : {1} files\nDuration  : {0}s\nOutput    : {2}'.format(
-        round(time.time() - start, 2), len(results), output_filename)
-        )
+        for result in results:
+            # Write the batch number
+            if count == 0:
+                batch += 1
+
+            # Write file data
+            writer.writerow(
+                [batch, os.path.basename(result.filepath), result.shade])
+            count += 1
+
+            # Reset the count
+            if count == tenth:
+                count = 0
 
 
 def _evaluate(filepaths):
@@ -70,7 +103,6 @@ def _evaluate(filepaths):
     # Initialize key variables
     results = []
     cores = int(os.cpu_count() * 0.8)
-    Shade = namedtuple('Shade', 'filepath shade')
 
     # Process the filepaths
     with Pool(processes=cores) as pool:
