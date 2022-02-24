@@ -66,7 +66,7 @@ def _subject(data):
 
     """
     # Initialize key variables
-    template = 'Write tests for FILE'
+    template = 'Resolvers: Create tests for FILE'
     result = template.replace('FILE', data.filename)
     return result
 
@@ -98,13 +98,13 @@ Please refer to the parent issue on how to implement these tests correctly:
 
 ### PR Acceptance Criteria
 
-- When complete this file must show **100%** coverage when merged into the code base.
-- [The current code coverage for the file can be found here](https://codecov.io/gh/PalisadoesFoundation/talawa-api/tree/develop/DIRECTORY)
+- When complete this file must show **100%** coverage when merged into the code base. This will be clearly visible when you submit your PR.
+- [The current code coverage for the file can be found here](https://codecov.io/gh/PalisadoesFoundation/talawa-api/tree/develop/SOURCE_DIR). If the file isn't found in this directory, or there is a 404 error, then tests have not been created.
 - The PR will show a report for the code coverage for the file you have added. You can use that as a guide.
 
 '''
     # Create TEST directory
-    test_dir = 'test{0}{1}{0}'.format(
+    test_dir = 'tests{0}{1}{0}'.format(
         os.sep, os.sep.join(data.directory.split(os.sep)[1:]))
     test_file = '{}{}.spec.js'.format(
         test_dir, '.'.join(data.filename.split('.')[:-1]))
