@@ -66,7 +66,7 @@ def _subject(data):
 
     """
     # Initialize key variables
-    template = 'Unittests for FILE'
+    template = 'Write tests for FILE'
     result = template.replace('FILE', data.filename)
     return result
 
@@ -83,16 +83,18 @@ def _issue(data):
     """
     # Initialize key variables
     template = '''\
-The Talawa-API code base needs to be 100% reliable. This means we need to have 100% unittest code coverage.
+The Talawa-API code base needs to be 100% reliable. This means we need to have 100% test code coverage.
 
-We will need unittests done for all methods, classes and/or functions found in this file.
+Tests need to be written for file `SOURCE_DIRSOURCE_FILE`
 
-`FILE`
+- We will need the API to be refactored for all methods, classes and/or functions found in this file for testing to be correctly executed.
+- When complete, all all methods, classes and/or functions in the refactored file will need to be tested. These tests must be placed in a
+single file with the name `TEST_FILE`. You may need to create the appropriate directory structure to do this.
 
-This file can be found in the `DIRECTORY` directory
+### IMPORTANT:
+Please refer to the parent issue on how to implement these tests correctly:
 
-Parent Issue:
-- https://github.com/PalisadoesFoundation/talawa/issues/1217
+- https://github.com/PalisadoesFoundation/talawa-api/issues/490
 
 ### PR Acceptance Criteria
 
@@ -101,8 +103,17 @@ Parent Issue:
 - The PR will show a report for the code coverage for the file you have added. You can use that as a guide.
 
 '''
+    # Create TEST directory
+    test_dir = 'test{0}{1}{0}'.format(
+        os.sep, os.sep.join(data.directory.split(os.sep)[1:]))
+    test_file = '{}{}.spec.js'.format(
+        test_dir, '.'.join(data.filename.split('.')[:-1]))
+
+    # Create the body of the GitHub issue
     result = template.replace(
-        'FILE', data.filename).replace('DIRECTORY', data.directory)
+        'SOURCE_FILE', data.filename).replace(
+            'SOURCE_DIR', '{}{}'.format(data.directory, os.sep)).replace(
+                'TEST_FILE', test_file)
     return result
 
 
