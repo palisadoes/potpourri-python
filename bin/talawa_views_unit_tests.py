@@ -18,7 +18,7 @@ def main():
 
     """
     # Initialize key variables
-    repo = 'talawa-api'
+    repo = 'talawa'
     Data = namedtuple('Data', 'filename directory count')
 
     # Process CLI
@@ -87,8 +87,8 @@ The Talawa code base needs to be 100% reliable. This means we need to have 100% 
 
 Tests need to be written for file `SOURCE_DIRSOURCE_FILE`
 
-- When complete, all all methods, classes and/or functions in the refactored file will need to be tested. These tests must be placed in a
-single file with the name `TEST_FILE`. You may need to create the appropriate directory structure to do this.
+- When complete, all methods, classes and/or functions in the file will need to be tested. 
+- These tests must be placed in a single file with the name `TEST_FILE`. You may need to create the appropriate directory structure to do this.
 
 ### IMPORTANT:
 Please refer to the parent issue on how to implement these tests correctly:
@@ -104,9 +104,9 @@ Please refer to the parent issue on how to implement these tests correctly:
 
 '''
     # Create TEST directory
-    test_dir = 'tests{0}{1}{0}'.format(
+    test_dir = 'test{0}{1}_test{0}'.format(
         os.sep, os.sep.join(data.directory.split(os.sep)[1:]))
-    test_file = '{}{}.spec.js'.format(
+    test_file = '{}{}_test.dart'.format(
         test_dir, '.'.join(data.filename.split('.')[:-1]))
 
     # Create the body of the GitHub issue
