@@ -210,7 +210,9 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Initialize key variables
     results = []
     hashtags = []
-    width = 100
+    mandatory_tags = [
+        '#canoneosm6', '#canoneosm6markii', '#canonm6', '#canonm6markii',
+        'sigma16mmf14']
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
@@ -234,10 +236,14 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
 
     # Add any additionally requested hashtags
     if isinstance(additions, list):
-        for addition in additions:
-            if isinstance(addition, str):
-                if addition.startswith('#'):
-                    hashtags.insert(0, addition)
+        for item in additions:
+            if isinstance(item, str):
+                if item.startswith('#'):
+                    hashtags.insert(0, item)
+
+    # Pre-pend the mandatory tags
+    for item in mandatory_tags:
+        hashtags.insert(0, item)
 
     # Trim hashtag list after additions
     hashtags = hashtags[:limit]
