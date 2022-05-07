@@ -210,9 +210,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Initialize key variables
     results = []
     hashtags = []
-    mandatory_tags = [
-        '#canoneosm6', '#canoneosm6markii', '#canonm6', '#canonm6markii',
-        '#sigma16mmf14']
+    mandatory_tags = ['#photoessay']
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
