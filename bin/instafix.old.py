@@ -7,7 +7,6 @@ import os
 import sys
 from collections import namedtuple
 import argparse
-import pathlib
 
 from PIL import Image, ImageOps
 import piexif
@@ -55,7 +54,7 @@ Destination directory '{}' does not exist.'''.format(destination))
             sys.exit(0)
 
         if _valid_file(filename) is True:
-            filepaths = [os.path.abspath(filename)]
+            filepaths = [filename]
 
     # Process
     _instagram(filepaths, destination)
@@ -76,7 +75,6 @@ def _instagram(filepaths, destination):
     ig_width = 1080
     border = 20
     quality = 100
-    rt_output_directory = '{0}converted{0}'.format(os.sep)
 
     # Error if no directory
     if os.path.isdir(destination) is False:
@@ -85,8 +83,6 @@ Destination directory '{}' does not exist.'''.format(destination))
         sys.exit(0)
 
     for filepath in filepaths:
-        (directory, filename) = os.path.split(filepath)
-
         # Create background image
         background = Image.new(
             'RGB', (ig_width, ig_width), color='white')
@@ -98,28 +94,30 @@ Destination directory '{}' does not exist.'''.format(destination))
             (original.width, original.height), Image.ANTIALIAS)
         resized = ImageOps.expand(resized, border=1)
 
+        # Set exif metadata to match the original except for the dimensions
+        found = bool(original.image.info.get('exif'))
+        if found is True:
+            exif = piexif.load(original.image.info['exif'])
+            exif['0th'][piexif.ImageIFD.ImageWidth] = original.width
+            exif['0th'][piexif.ImageIFD.ImageLength] = original.height
+            exif['0th'][piexif.ImageIFD.Artist] = 'Peter Harrison'
+            exif['0th'][piexif.ImageIFD.Copyright] = (
+                'ALL RIGHTS RESERVED - Peter Harrison @ SIMIYA.COM')
+
         # Overlay source image on background and save
         background.paste(
             resized, (original.hoffset, original.voffset))
         newfile = '{}{}Final-{}'.format(
             destination, os.sep, os.path.basename(filepath))
         newfile = newfile.replace('{0}{0}'.format(os.sep), os.sep)
-        print('Converting {} to {}'.format(filename, newfile))
-        background.save(newfile, quality=quality)
+        print('Converting {} to {}'.format(filepath, newfile))
+        if found is True:
+            background.save(newfile, quality=quality, exif=piexif.dump(exif))
+        else:
+            background.save(newfile, quality=quality)
 
         # Close redimensioned image
         original.image.close()
-
-        # Update piexif information
-        if rt_output_directory in filepath:
-            parent_directory = pathlib.Path(directory).parents[0]
-            parent_file = '{}{}{}'.format(parent_directory, os.sep, filename)
-            if os.path.isfile(parent_file):
-                piexif.transplant(parent_file, newfile)
-            else:
-                piexif.transplant(filepath, newfile)
-        else:
-            piexif.transplant(filepath, newfile)
 
 
 def _new_dimensions(filepath, ig_width=1024, border=20):
@@ -183,7 +181,7 @@ def _filepaths(source):
     files = os.listdir(source)
     for filename in sorted(files):
         # Only interested in files
-        filepath = os.path.abspath('{}{}{}'.format(source, os.sep, filename))
+        filepath = '{}{}{}'.format(source, os.sep, filename)
         if _valid_file(filepath) is True:
             result.append(filepath)
 
