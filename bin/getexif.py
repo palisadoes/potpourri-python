@@ -8,7 +8,7 @@ import sys
 from collections import namedtuple
 import argparse
 
-from PIL import Image, ExifTags
+from PIL import Image
 from PIL.ExifTags import TAGS
 import piexif
 
@@ -66,7 +66,7 @@ def _process(filepath):
             result[key] = value
 
     # Print data
-    for key, value in result.items():
+    for key, value in sorted(result.items()):
         print(f'{key:25}: {value}')
 
 
@@ -86,31 +86,35 @@ def _exif(filepath):
     """
     # Initialize key variables
     result = []
+    meta = None
 
     # Read data
     with Image.open(filepath) as image:
         # Get all Exif. The '0th', '1st' and 'Exif' sections of the spec
-        meta = piexif.load(image.info['exif'])
+        exifdata = image.info.get('exif')
+        if bool(exifdata):
+            meta = piexif.load(exifdata)
 
     # Process data
-    for ifd in ('0th', 'Exif', 'GPS', '1st'):
-        for tag in meta[ifd]:
-            label = piexif.TAGS[ifd][tag]['name']
-            value = meta[ifd][tag]
-            print(label, value)
-            if isinstance(value, bytes):
-                try:
-                    value = value.decode()
-                except:
-                    continue
+    if bool(meta) is True:
+        for ifd in ('0th', 'Exif', 'GPS', '1st'):
+            for tag in meta[ifd]:
+                label = piexif.TAGS[ifd][tag]['name']
+                value = meta[ifd][tag]
+                print(label, value)
+                if isinstance(value, bytes):
+                    try:
+                        value = value.decode()
+                    except:
+                        continue
 
-            # Fixup
-            if label == 'ExposureTime':
-                value = '{}/{}'.format(value[0], value[1])
-            if label == 'FNumber':
-                value = float(value[0]/value[1])
+                # Fixup
+                if label == 'ExposureTime':
+                    value = '{}/{}'.format(value[0], value[1])
+                if label == 'FNumber':
+                    value = float(value[0]/value[1])
 
-            result.append({label: value})
+                result.append({label: value})
 
     # Return
     return result
