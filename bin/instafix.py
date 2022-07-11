@@ -115,16 +115,30 @@ Destination directory '{}' does not exist.'''.format(destination))
             parent_directory = pathlib.Path(directory).parents[0]
             parent_file = '{}{}{}'.format(parent_directory, os.sep, filename)
             if os.path.isfile(parent_file):
-                piexif.transplant(parent_file, newfile)
+                _transplant_exif(parent_file, newfile)
             else:
-                # Verify that the source file has exif data, update if True
-                with Image.open(filepath) as _image_:
-                    # Get all Exif.
-                    exifdata = _image_.info.get('exif')
-                    if bool(exifdata):
-                        piexif.transplant(filepath, newfile)
+                _transplant_exif(filepath, newfile)
         else:
-            piexif.transplant(filepath, newfile)
+            _transplant_exif(filepath, newfile)
+
+
+def _transplant_exif(source, destination):
+    """Copy exif data from source to destination.
+
+    Args:
+        source: Source filepath
+        destination: Destination filepath
+
+    Returns:
+        None
+
+    """
+    # Verify that the source file has exif data, update if True
+    with Image.open(source) as _image_:
+        # Get all Exif.
+        exifdata = _image_.info.get('exif')
+        if bool(exifdata):
+            piexif.transplant(source, destination)
 
 
 def _new_dimensions(filepath, ig_width=1024, border=20):
