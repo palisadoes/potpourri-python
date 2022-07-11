@@ -117,7 +117,12 @@ Destination directory '{}' does not exist.'''.format(destination))
             if os.path.isfile(parent_file):
                 piexif.transplant(parent_file, newfile)
             else:
-                piexif.transplant(filepath, newfile)
+                # Verify that the source file has exif data, update if True
+                with Image.open(filepath) as _image_:
+                    # Get all Exif.
+                    exifdata = _image_.info.get('exif')
+                    if bool(exifdata):
+                        piexif.transplant(filepath, newfile)
         else:
             piexif.transplant(filepath, newfile)
 
