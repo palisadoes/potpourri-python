@@ -58,22 +58,22 @@ Destination directory '{}' does not exist.'''.format(destination))
             filepaths = [os.path.abspath(filename)]
 
     # Process
-    _instagram(filepaths, destination)
+    _instagram(filepaths, destination, ig_width=args.width)
 
 
-def _instagram(filepaths, destination):
+def _instagram(filepaths, destination, ig_width=1080):
     """Process files for instagram.
 
     Args:
         filepaths: List of filepaths
         destination: Destination directory name
+        ig_width: Width of the output file
 
     Returns:
         None
 
     """
     # Initialize key variables
-    ig_width = 1080
     border = 20
     quality = 100
     rt_output_directory = '{0}converted{0}'.format(os.sep)
@@ -280,6 +280,11 @@ def _args():
         type=str,
         default='~/Pictures/instagram',
         help='Directory where output photos will reside.')
+    parser.add_argument(
+        '--width',
+        type=int,
+        default=1080,
+        help='Width of the output files.')
     result = parser.parse_args()
     return result
 
