@@ -31,8 +31,12 @@ def main():
         filename = os.path.expanduser(args.filename)
         # Error if no file
         if os.path.isfile(filename) is False:
-            print('''\
-Source filename '{}' does not exist.'''.format(filename))
+            print(
+                """\
+Source filename '{}' does not exist.""".format(
+                    filename
+                )
+            )
             sys.exit(0)
 
         # Process
@@ -67,7 +71,7 @@ def _process(filepath):
 
     # Print data
     for key, value in sorted(result.items()):
-        print(f'{key:25}: {value}')
+        print(f"{key:25}: {value}")
 
 
 def _exif(filepath):
@@ -91,15 +95,15 @@ def _exif(filepath):
     # Read data
     with Image.open(filepath) as image:
         # Get all Exif. The '0th', '1st' and 'Exif' sections of the spec
-        exifdata = image.info.get('exif')
+        exifdata = image.info.get("exif")
         if bool(exifdata):
             meta = piexif.load(exifdata)
 
     # Process data
     if bool(meta) is True:
-        for ifd in ('0th', 'Exif', 'GPS', '1st'):
+        for ifd in ("0th", "Exif", "GPS", "1st"):
             for tag in meta[ifd]:
-                label = piexif.TAGS[ifd][tag]['name']
+                label = piexif.TAGS[ifd][tag]["name"]
                 value = meta[ifd][tag]
                 print(label, value)
                 if isinstance(value, bytes):
@@ -109,10 +113,10 @@ def _exif(filepath):
                         continue
 
                 # Fixup
-                if label == 'ExposureTime':
-                    value = '{}/{}'.format(value[0], value[1])
-                if label == 'FNumber':
-                    value = float(value[0]/value[1])
+                if label == "ExposureTime":
+                    value = "{}/{}".format(value[0], value[1])
+                if label == "FNumber":
+                    value = float(value[0] / value[1])
 
                 result.append({label: value})
 
@@ -137,14 +141,14 @@ def _image(filepath):
     with Image.open(filepath) as image:
         # Extract image metadata
         lookup = {
-            'Filename': image.filename,
-            'Image Size': image.size,
-            'Image Height': image.height,
-            'Image Width': image.width,
-            'Image Format': image.format,
-            'Image Mode': image.mode,
-            'Image is Animated': getattr(image, 'is_animated', False),
-            'Frames in Image': getattr(image, 'n_frames', 1)
+            "Filename": image.filename,
+            "Image Size": image.size,
+            "Image Height": image.height,
+            "Image Width": image.width,
+            "Image Format": image.format,
+            "Image Mode": image.mode,
+            "Image is Animated": getattr(image, "is_animated", False),
+            "Frames in Image": getattr(image, "n_frames", 1),
         }
 
     # Process data
@@ -182,8 +186,13 @@ def _zeroth(filepath):
 
         # Decode bytes
         if isinstance(value, bytes):
-            value = value.decode()
-        result.append({tag: value})
+            try:
+                value = value.decode()
+            except:
+                value = None
+
+        if bool(value):
+            result.append({"0th {}".format(tag): value})
 
     return result
 
@@ -223,12 +232,13 @@ def _filetype(filepath):
 
     """
     # Initialize key variables
-    FileType = namedtuple('FileType', 'jpg unsupported')
+    FileType = namedtuple("FileType", "jpg unsupported")
     result = FileType(jpg=False, unsupported=True)
 
     # Determine the type of file
-    if filepath.lower().endswith('.jpg') is True or (
-            filepath.lower().endswith('.jpeg') is True):
+    if filepath.lower().endswith(".jpg") is True or (
+        filepath.lower().endswith(".jpeg") is True
+    ):
         result = FileType(jpg=True, unsupported=False)
     return result
 
@@ -246,9 +256,8 @@ def _args():
     # Process CLI options
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--filename',
-        type=str,
-        help='Name of file to process.')
+        "--filename", type=str, help="Name of file to process."
+    )
     result = parser.parse_args()
     return result
 
