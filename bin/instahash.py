@@ -211,12 +211,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     results = []
     hashtags = []
     mandatory_tags = [
-        '#photoessay',
-        '#canoneosm6',
-        '#canoneosm6markii',
-        '#canonm6',
-        '#canonm6markii',
-        '#sigma16mmf14'
+        '#photoessay'
     ]
 
     # Get results for both hashtag types
