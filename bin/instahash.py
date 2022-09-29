@@ -12,7 +12,6 @@ import argparse
 import random
 import re
 from operator import attrgetter
-# import textwrap
 
 
 class Hashtags():
@@ -178,15 +177,16 @@ def main():
 
     # Read CSV file
     with open(filename, newline='') as fh_:
-        reader = csv.DictReader(fh_, delimiter='\t')
+        reader = csv.DictReader(fh_, delimiter=',')
         for row in reader:
-            rows.append(
-                Row(
-                    hashtag=row['Hashtag'].lower().strip(),
-                    posts=abs(int(row['Posts'].strip().replace(',', ''))),
-                    feature=bool('f' in row['Type'].lower())
+            if row['Hashtag'].startswith(';') is False:
+                rows.append(
+                    Row(
+                        hashtag=row['Hashtag'].lower().strip(),
+                        posts=abs(int(row['Posts'].strip().replace(',', ''))),
+                        feature=bool(row['Account'])
+                    )
                 )
-            )
 
     # Create report
     report(rows, limit=limit, feature_percent=percent,
@@ -211,7 +211,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     results = []
     hashtags = []
     mandatory_tags = [
-        '#photoessay'
+        '#photoessay', '#documentary', '#documentaryphotography'
     ]
 
     # Get results for both hashtag types
