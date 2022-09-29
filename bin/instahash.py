@@ -304,7 +304,7 @@ def _args():
         '--percent',
         type=int,
         required=False,
-        default=25,
+        default=50,
         help='Percent of results that are feature accounts.')
     parser.add_argument(
         '--additions',
