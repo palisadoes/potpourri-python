@@ -254,7 +254,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Print results
     # output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
     output = hashtags
-    print('\n{}{}\n'.format('.\n' * 5, ' '.join(output)))
+    print('\n\n{}{}\n'.format('.\n' * 5, ' '.join(output)))
 
 
 def _additions(additions):
