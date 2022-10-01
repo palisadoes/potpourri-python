@@ -37,11 +37,11 @@ class Hashtags():
         entries = [
             Entry(size='XXXL', max=1000000000, percent=3),
             Entry(size='XXL', max=1000000, percent=7),
-            Entry(size='XL', max=500000, percent=55),
+            Entry(size='XL', max=500000, percent=15),
             # Entry(size='L', max=100000, percent=25),
             Entry(size='M', max=50000, percent=25),
-            Entry(size='S', max=20000, percent=10),
-            Entry(size='N/A', max=10000, percent=0)
+            Entry(size='S', max=20000, percent=25),
+            Entry(size='N/A', max=10000, percent=25)
         ]
         entries = sorted(entries, key=attrgetter('max'))
         for index, entry in enumerate(entries[:-1]):
