@@ -1,0 +1,6 @@
+piexif
+pillow
+black
+flake8
+pydocstring
+pycodestyle

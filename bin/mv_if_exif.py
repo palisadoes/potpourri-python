@@ -7,6 +7,8 @@ import os
 import sys
 from collections import namedtuple
 import argparse
+import hashlib
+import shutil
 
 from PIL import Image
 from PIL.ExifTags import TAGS
@@ -26,61 +28,106 @@ def main():
     # Initialize key variables
     args = _args()
 
-    if bool(args.directory) is True:
-        directory = os.path.expanduser(args.directory)
+    if bool(args.source) is True:
+        source = os.path.expanduser(args.source)
         # Error if no file
-        if os.path.isdir(directory) is False:
+        if os.path.isdir(source) is False:
             print(
                 """\
 Source directory '{}' does not exist.""".format(
-                    directory
+                    source
                 )
             )
             sys.exit(0)
 
+        if bool(args.destination) is True:
+            destination = os.path.expanduser(args.destination)
+            # Error if no file
+            if os.path.isdir(destination) is False:
+                print(
+                    """\
+Destination directory '{}' does not exist.""".format(
+                        destination
+                    )
+                )
+                sys.exit(0)
+
         # Process
-        _process(directory)
+        _process(source, destination)
 
 
-def _process(root):
+def _process(source, destination):
     """Process data.
 
     Args:
-        root: Root directory to process
+        source: Root directory to process
+        destination: Destination to place file with EXIF data
 
     Returns:
         None
 
     """
     # Get a recursive listing of files
-    for directory, _, filenames in os.walk(root):
+    for directory, _, filenames in os.walk(source):
         for filename in filenames:
-            filepath = "{}{}{}".format(directory, os.sep, filename).replace(
+            in_filepath = "{}{}{}".format(directory, os.sep, filename).replace(
                 "{0}{0}".format(os.sep), os.sep
             )
 
-            if bool(filepath) is True:
+            if bool(in_filepath) is True:
                 # Error if no file
-                if os.path.isfile(filepath) is False:
-                    print("Filename '{}' does not exist.".format(filepath))
+                if os.path.isfile(in_filepath) is False:
+                    print("Filename '{}' does not exist.".format(in_filepath))
                     continue
 
                 # Process
-                if _valid_file(filepath) is True:
-                    data = _metadata(filepath)
+                if _valid_file(in_filepath) is True:
+                    data = _metadata(in_filepath)
 
                     # Compatible with Rapid Photo Downloader?
                     compatible = data.get("Model")
                     if bool(compatible) is True:
                         print(
                             f"""\
-{filepath:25}: Model: {compatible:25}: {bool(compatible)}"""
+{in_filepath:25}: Model: {compatible:25}: {bool(compatible)}"""
                         )
+
+                        # Get the extension
+                        (_, extension) = in_filepath.split(".")
+
+                        # Get the out_filepath
+                        digest = _digest(in_filepath)
+                        if bool(digest) is True:
+                            out_filepath = "{}{}{}.{}".format(
+                                destination, os.sep, digest, extension
+                            ).replace("{0}{0}".format(os.sep), os.sep)
+
+                            print(f"""Creating: {out_filepath:25}""")
+                            shutil.move(in_filepath, out_filepath)
+
                     else:
                         print(
                             f"""\
-{filepath:25}: Model: {'None':25}: {bool(compatible)}"""
+{in_filepath:25}: Model: {'None':25}: {bool(compatible)}"""
                         )
+
+
+def _digest(filepath):
+    """Get the HEX digest of file.
+
+    Args:
+        filepath: File path
+
+    Returns:
+        result: Hex digest
+
+    """
+    # Return
+    result = None
+    with open(filepath, "rb") as fh_:
+        data = fh_.read()
+        result = hashlib.sha512(data).hexdigest()
+    return result
 
 
 def _metadata(filepath):
@@ -290,7 +337,18 @@ def _args():
     """
     # Process CLI options
     parser = argparse.ArgumentParser()
-    parser.add_argument("--directory", type=str, help="Name of directory to process.")
+    parser.add_argument(
+        "--source",
+        required=True,
+        type=str,
+        help="Source directory to process.",
+    )
+    parser.add_argument(
+        "--destination",
+        required=True,
+        type=str,
+        help="Destination of photos with EXIF data.",
+    )
     result = parser.parse_args()
     return result
 
