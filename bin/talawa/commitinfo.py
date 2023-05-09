@@ -60,7 +60,6 @@ def repo_commits(org, repo, usernames, filepath, delay=60, verbose=False):
 
         # Connect to the API
         with urlopen(url) as stream:
-
             # Get the data
             try:
                 data = json.loads(stream.read().decode("utf8"))
@@ -70,20 +69,30 @@ def repo_commits(org, repo, usernames, filepath, delay=60, verbose=False):
             # Update the result
             if bool(data) is True:
                 for item in data:
+                    # Process the username
+                    username = (
+                        item.get("author", {}).get("login")
+                        if bool(item.get("author")) is True
+                        else ""
+                    )
+                    # Skip if the commit was done via the web
+                    if bool(username) is False:
+                        continue
+
+                    # Process the rest
                     email = (
                         item.get("commit", {})
                         .get("author", {})
                         .get("email", "")
                     )
                     name = item.get("commit", {}).get("author", {}).get("name")
-                    username = item.get("author", {}).get("login")
+
+                    # Create a record
                     record = CommitUser(
                         name=name, email=email, username=username
                     )
 
                     # Skip in certain cases
-                    if bool(username) is False:
-                        continue
                     if "noreply.github.com" in email.lower():
                         continue
                     if username in usernames:
@@ -219,7 +228,6 @@ def tsv_write(filepath, record, verbose=False):
     """
     # Update file
     if os.path.exists(filepath) is True:
-
         # Print update
         if bool(verbose) is False:
             print('Adding "{}"'.format(record.username))
