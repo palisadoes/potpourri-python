@@ -56,7 +56,6 @@ def fork_users(org, repo, delay=60, verbose=False):
 
         # Connect to the API
         with urlopen(url) as stream:
-
             # Get the data
             try:
                 data = json.loads(stream.read().decode("utf8"))
@@ -117,7 +116,6 @@ def star_users(org, repo, delay=60, verbose=False):
 
         # Connect to the API
         with urlopen(url) as stream:
-
             # Get the data
             try:
                 data = json.loads(stream.read().decode("utf8"))
@@ -159,6 +157,7 @@ def user_profile(username, delay=60, verbose=False):
     # Initialize key variables
     url = "https://api.github.com/users/{0}".format(username)
     result = None
+    data = {}
 
     # Sleep
     sleep(delay)
@@ -167,11 +166,14 @@ def user_profile(username, delay=60, verbose=False):
     print('Getting profile data for user "{}"'.format(username))
 
     # Extract the data
-    with urlopen(url) as stream:
-        try:
-            data = json.loads(stream.read().decode("utf8"))
-        except:
-            pass
+    try:
+        with urlopen(url) as stream:
+            try:
+                data = json.loads(stream.read().decode("utf8"))
+            except:
+                pass
+    except:
+        return data
 
     # Return
     if bool(data) is True:
@@ -432,7 +434,6 @@ def tsv_write(filepath, record, verbose=False):
     """
     # Update file
     if os.path.exists(filepath) is True:
-
         # Print update
         if bool(verbose) is False:
             print('Adding "{}"'.format(record.username))
@@ -508,25 +509,26 @@ def main():
             profile = user_profile(username, delay=delay, verbose=verbose)
 
             # Create an output record
-            record = UserDetail(
-                username=username,
-                email=profile.email,
-                name=profile.name,
-                company=profile.company,
-                location=profile.location,
-                twitter_username=profile.twitter_username,
-                blog=profile.blog,
-                html_url=profile.html_url,
-                created_at=profile.created_at,
-                updated_at=profile.updated_at,
-                followers=profile.followers,
-                public_repos=profile.public_repos,
-                forks=interests.get(username, {}).get("forks"),
-                stars=interests.get(username, {}).get("stars"),
-            )
+            if bool(profile) is True:
+                record = UserDetail(
+                    username=username,
+                    email=profile.email,
+                    name=profile.name,
+                    company=profile.company,
+                    location=profile.location,
+                    twitter_username=profile.twitter_username,
+                    blog=profile.blog,
+                    html_url=profile.html_url,
+                    created_at=profile.created_at,
+                    updated_at=profile.updated_at,
+                    followers=profile.followers,
+                    public_repos=profile.public_repos,
+                    forks=interests.get(username, {}).get("forks"),
+                    stars=interests.get(username, {}).get("stars"),
+                )
 
-            # Update the output file
-            tsv_write(filepath, record)
+                # Update the output file
+                tsv_write(filepath, record)
 
 
 if __name__ == "__main__":
