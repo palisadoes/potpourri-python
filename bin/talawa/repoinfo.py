@@ -173,7 +173,7 @@ def user_profile(username, delay=60, verbose=False):
             except:
                 pass
     except:
-        return data
+        return result
 
     # Return
     if bool(data) is True:
