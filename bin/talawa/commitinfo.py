@@ -42,8 +42,9 @@ def repo_commits(org, repo, usernames, filepath, delay=60, verbose=False):
         print("Loading data from {0}".format(tracker_filepath))
         with open(tracker_filepath) as stream:
             starts = yaml.safe_load(stream)
-    else:
-        starts[repo] = 1
+
+    # Set the starts value
+    starts[repo] = 1 if bool(starts.get(repo)) is False else starts.get(repo)
 
     # Print status
     print('Getting commits for repo "{}"'.format(repo))
