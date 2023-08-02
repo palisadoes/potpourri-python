@@ -5,7 +5,7 @@ Hashtag,Account,Posts
 ;#capturestreets,capturestreets,4600000
 ;#streetleaks,streetleaks,4385120
 ;#storyofthestreet,storyofthestreet,3826462
-;#streets_storytelling,streets_storytelling,3067575
+#streets_storytelling,streets_storytelling,3067575
 ;#fromstreetswithlove,fromstreetswithlove,3008010
 ;#bnw_city,bnw_city,2500000
 ;#thestreetphotographyhub,thestreetphotographyhub,2390525
@@ -20,11 +20,11 @@ Hashtag,Account,Posts
 ;#spjstreets,streetphotographyjournal,662000
 ;#bnw_lightandshadow,bnw_lightandshadow.new,548730
 ;#streetscenesmag,streetscenesmag,498000
-;#street_avengers,street_avengers,487202
+#street_avengers,street_avengers,487202
 #therawsociety,the_raw_society,358000
 ;#thestreephers,streephers,334876
 ;#streetphotographybnw,streetphotographybnw,293968
-;#streetphotomag,streetphotomag,286000
+#streetphotomag,streetphotomag,286000
 #curiouscameraclub,thecuriouscameraclub,285000
 #peraphotogallery,peraphotogallery,234000
 #mydaidia,mydaidia,229000
@@ -41,7 +41,7 @@ Hashtag,Account,Posts
 ;#progressivestreet,progressivestreet,51200
 #littleboxcollective,littleboxcollective,50059
 #woofermagazine,woofermagazine,43800
-;#street_macadam,street_macadam,34033
+#street_macadam,street_macadam,34033
 #phmuseum,phmuseum,31600
 ;#lcen,lacalleesnuestra,16600
 ;#bakhishcollective,bakhish.collective,13700
@@ -151,3 +151,8 @@ Hashtag,Account,Posts
 #street_badass,street_badass,11200
 #streetsgrammer,streetsgrammer,82000
 #sonyalpha,,25000000
+#framelinesmag,framelinesmag,10700
+#streetizm,framelinesmag,72700
+#streetmoment,framelinesmag,118000
+
+
