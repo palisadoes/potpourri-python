@@ -14,7 +14,7 @@ import re
 from operator import attrgetter
 
 
-class Hashtags():
+class Hashtags:
     """Class to evaluate file data."""
 
     def __init__(self, rows, limit=25):
@@ -32,24 +32,25 @@ class Hashtags():
         buckets = {}
 
         # Create buckets
-        Bucket = namedtuple('Bucket', 'min max percent')
-        Entry = namedtuple('Entry', 'size max percent')
+        Bucket = namedtuple("Bucket", "min max percent")
+        Entry = namedtuple("Entry", "size max percent")
         entries = [
-            Entry(size='XXXL', max=1000000000, percent=3),
-            Entry(size='XXL', max=1000000, percent=7),
-            Entry(size='XL', max=500000, percent=15),
+            Entry(size="XXXL", max=1000000000, percent=3),
+            Entry(size="XXL", max=1000000, percent=7),
+            Entry(size="XL", max=500000, percent=15),
             # Entry(size='L', max=100000, percent=25),
-            Entry(size='M', max=50000, percent=25),
-            Entry(size='S', max=20000, percent=25),
-            Entry(size='N/A', max=10000, percent=25)
+            Entry(size="M", max=50000, percent=25),
+            Entry(size="S", max=20000, percent=25),
+            Entry(size="N/A", max=10000, percent=25),
         ]
-        entries = sorted(entries, key=attrgetter('max'))
+        entries = sorted(entries, key=attrgetter("max"))
         for index, entry in enumerate(entries[:-1]):
             next_index = index + 1
             buckets[entries[next_index].size] = Bucket(
                 min=entry.max,
                 max=entries[next_index].max,
-                percent=entries[next_index].percent)
+                percent=entries[next_index].percent,
+            )
 
         # Get rows
         self.rows = _select(rows, buckets, limit=limit)
@@ -142,7 +143,7 @@ def _select(rows, buckets, limit=25):
         selected.extend(value)
 
     # Return
-    selected = sorted(selected, key=attrgetter('posts'), reverse=True)
+    selected = sorted(selected, key=attrgetter("posts"), reverse=True)
     return selected
 
 
@@ -157,7 +158,7 @@ def main():
 
     """
     # Initialize key variables
-    Row = namedtuple('Row', 'hashtag posts feature')
+    Row = namedtuple("Row", "hashtag posts feature")
     rows = []
     args = _args()
     filename = os.path.expanduser(args.filename)
@@ -176,21 +177,26 @@ def main():
         sys.exit(0)
 
     # Read CSV file
-    with open(filename, newline='') as fh_:
-        reader = csv.DictReader(fh_, delimiter=',')
+    with open(filename, newline="") as fh_:
+        reader = csv.DictReader(fh_, delimiter=",")
         for row in reader:
-            if row['Hashtag'].startswith(';') is False:
+            if row["Hashtag"].startswith(";") is False:
                 rows.append(
                     Row(
-                        hashtag=row['Hashtag'].lower().strip(),
-                        posts=abs(int(row['Posts'].strip().replace(',', ''))),
-                        feature=bool(row['Account'])
+                        hashtag=row["Hashtag"].lower().strip(),
+                        posts=abs(int(row["Posts"].strip().replace(",", ""))),
+                        feature=bool(row["Account"]),
                     )
                 )
 
     # Create report
-    report(rows, limit=limit, feature_percent=percent,
-           additions=additions, verbose=verbose)
+    report(
+        rows,
+        limit=limit,
+        feature_percent=percent,
+        additions=additions,
+        verbose=verbose,
+    )
 
 
 def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
@@ -210,21 +216,27 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Initialize key variables
     results = []
     hashtags = []
-    mandatory_tags = [
-        '#photoessay', '#documentary', '#documentaryphotography'
-    ]
+    mandatory_tags = ["#photoessay", "#documentary", "#documentaryphotography"]
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
     regulars = RegularHashtags(rows, limit=limit).rows
 
     # Randomly select proportionate numbers of feature and regular accounts
-    results.extend(random.sample(
-        regulars,
-        min(len(regulars), math.ceil(limit * (1 - (feature_percent / 100))))))
-    results.extend(random.sample(
-        features,
-        min(len(features), math.ceil(limit * feature_percent / 100))))
+    results.extend(
+        random.sample(
+            regulars,
+            min(
+                len(regulars), math.ceil(limit * (1 - (feature_percent / 100)))
+            ),
+        )
+    )
+    results.extend(
+        random.sample(
+            features,
+            min(len(features), math.ceil(limit * feature_percent / 100)),
+        )
+    )
 
     # Randomly select `limit` numbers of results
     results = random.sample(results, min(limit, len(results)))
@@ -238,7 +250,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     if isinstance(additions, list):
         for item in additions:
             if isinstance(item, str):
-                if item.startswith('#'):
+                if item.startswith("#"):
                     hashtags.insert(0, item)
 
     # Pre-pend the mandatory tags
@@ -254,7 +266,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Print results
     # output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
     output = hashtags
-    print('\n\n{}{}\n'.format('.\n' * 5, ' '.join(output)))
+    print("\n\n{}{}\n".format(".\n" * 5, " ".join(output)))
 
 
 def _additions(additions):
@@ -276,8 +288,8 @@ def _additions(additions):
 
         # Add hashtags
         for hashtag in hashtags:
-            if bool(re.match(r'^\w+$', hashtag).group(0)) is True:
-                result.append('#{}'.format(hashtag.lower()))
+            if bool(re.match(r"^\w+$", hashtag).group(0)) is True:
+                result.append("#{}".format(hashtag.lower()))
 
     # Return
     return result
@@ -293,34 +305,41 @@ def _args():
         result: Args dictionary
 
     """
+    # Initialize key variables
+    max_results = 29
+    default_percentage = 50
+
     # Process CLI options
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--filename',
-        type=str,
-        required=True,
-        help='Name of file to process.')
+        "--filename", type=str, required=True, help="Name of file to process."
+    )
     parser.add_argument(
-        '--percent',
+        "--percent",
         type=int,
         required=False,
         default=50,
-        help='Percent of results that are feature accounts.')
+        help=(
+            "Percent of results that are feature accounts. "
+            "Default: {}".format(default_percentage)
+        ),
+    )
     parser.add_argument(
-        '--additions',
+        "--additions",
         type=str,
         required=False,
-        help='List of mandatory hashtags to add.')
+        help="List of mandatory hashtags to add.",
+    )
     parser.add_argument(
-        '--results',
+        "--results",
         type=int,
         required=False,
-        default=29,
-        help='Number of results to return.')
+        default=max_results,
+        help=("Number of results to return. Default: {}".format(max_results)),
+    )
     parser.add_argument(
-        '--verbose',
-        action='store_true',
-        help='increase output verbosity')
+        "--verbose", action="store_true", help="increase output verbosity"
+    )
     result = parser.parse_args()
     return result
 
