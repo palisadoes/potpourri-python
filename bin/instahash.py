@@ -216,7 +216,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Initialize key variables
     results = []
     hashtags = []
-    mandatory_tags = []
+    mandatory_tags = ["#streetmarket"]
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
@@ -253,12 +253,13 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
                 if item.startswith("#"):
                     hashtags.insert(0, item)
 
-    # Pre-pend the mandatory tags
-    for item in mandatory_tags:
-        hashtags.insert(0, item)
-
     # Trim hashtag list after additions
     hashtags = hashtags[:limit]
+
+    # Pre-pend the mandatory tags
+    for item in mandatory_tags:
+        if item not in hashtags:
+            hashtags.insert(0, item)
 
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
