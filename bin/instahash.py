@@ -169,7 +169,7 @@ def main():
 
     # Add limits to the CLI parameters
     percent = percent if 0 <= percent <= 100 else 25
-    limit = limit if 10 <= limit < 30 else 25
+    limit = 30 if limit > 30 else math.ceil(limit)
 
     # Process destination
     if os.path.isfile(filename) is False:
@@ -216,7 +216,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Initialize key variables
     results = []
     hashtags = []
-    mandatory_tags = ["#photoessay", "#documentary", "#documentaryphotography"]
+    mandatory_tags = []
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
@@ -306,7 +306,7 @@ def _args():
 
     """
     # Initialize key variables
-    max_results = 29
+    max_results = 5
     default_percentage = 50
 
     # Process CLI options
@@ -318,7 +318,7 @@ def _args():
         "--percent",
         type=int,
         required=False,
-        default=50,
+        default=60,
         help=(
             "Percent of results that are feature accounts. "
             "Default: {}".format(default_percentage)
