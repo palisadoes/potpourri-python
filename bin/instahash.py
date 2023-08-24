@@ -253,6 +253,9 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
                 if item.startswith("#"):
                     hashtags.insert(0, item)
 
+    # Shuffle hashtags to hide methodology
+    random.shuffle(hashtags)
+
     # Trim hashtag list after additions
     hashtags = hashtags[:limit]
 
