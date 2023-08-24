@@ -289,13 +289,14 @@ def _additions(additions):
     result = []
 
     if bool(additions) is True:
-        # Split on word boundaries, including commas
-        hashtags = re.findall(r"[\w']+", additions)
+        for addition in additions:
+            # Split on word boundaries, including commas
+            hashtags = re.findall(r"[\w']+", addition)
 
-        # Add hashtags
-        for hashtag in hashtags:
-            if bool(re.match(r"^\w+$", hashtag).group(0)) is True:
-                result.append("#{}".format(hashtag.lower()))
+            # Add hashtags
+            for hashtag in hashtags:
+                if bool(re.match(r"^\w+$", hashtag).group(0)) is True:
+                    result.append("#{}".format(hashtag.lower()))
 
     # Return
     return result
