@@ -258,8 +258,10 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
 
     # Pre-pend the mandatory tags
     for item in mandatory_tags:
-        if item not in hashtags:
-            hashtags.insert(0, item)
+        hashtags.insert(0, item)
+
+    # Remove duplicates
+    hashtags = list(set(hashtags))
 
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
@@ -329,6 +331,7 @@ def _args():
         "--additions",
         type=str,
         required=False,
+        nargs="+",
         help="List of mandatory hashtags to add.",
     )
     parser.add_argument(
