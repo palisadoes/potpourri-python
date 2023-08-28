@@ -13,6 +13,8 @@ import random
 import re
 from operator import attrgetter
 
+LIMIT_MAX = 25
+
 
 class Hashtags:
     """Class to evaluate file data."""
@@ -199,7 +201,9 @@ def main():
     )
 
 
-def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
+def report(
+    rows, limit=LIMIT_MAX, feature_percent=25, additions=None, verbose=False
+):
     """Process data.
 
     Args:
@@ -249,7 +253,7 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
 
-    # Trim hashtag list after additions
+    # Trim hashtag list before additions
     hashtags = hashtags[:limit]
 
     # Add any additionally requested hashtags
@@ -268,6 +272,9 @@ def report(rows, limit=25, feature_percent=25, additions=None, verbose=False):
 
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
+
+    # Trim hashtag list after additions
+    hashtags = hashtags[:LIMIT_MAX]
 
     # Print results
     # output = textwrap.wrap(' '.join(hashtags), width, break_long_words=False)
