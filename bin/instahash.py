@@ -320,7 +320,6 @@ def _args():
 
     """
     # Initialize key variables
-    max_results = 5
     default_percentage = 50
 
     # Process CLI options
@@ -349,8 +348,8 @@ def _args():
         "--results",
         type=int,
         required=False,
-        default=max_results,
-        help=("Number of results to return. Default: {}".format(max_results)),
+        default=LIMIT_MAX,
+        help=("Number of results to return. Default: {}".format(LIMIT_MAX)),
     )
     parser.add_argument(
         "--verbose", action="store_true", help="increase output verbosity"
