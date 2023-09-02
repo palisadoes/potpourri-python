@@ -331,7 +331,7 @@ def _args():
         "--percent",
         type=int,
         required=False,
-        default=60,
+        default=50,
         help=(
             "Percent of results that are feature accounts. "
             "Default: {}".format(default_percentage)
