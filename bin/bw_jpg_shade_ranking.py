@@ -8,16 +8,17 @@ import sys
 from collections import namedtuple
 import argparse
 from operator import attrgetter
-from multiprocessing import Pool
+from multiprocessing import get_context
 import csv
 import time
 import shutil
+import statistics
 
 
 from PIL import Image
 
-Shade = namedtuple('Shade', 'filepath shade')
-Batch = namedtuple('Batch', 'filepath shade batch')
+Shade = namedtuple("Shade", "filepath shade square")
+Batch = namedtuple("Batch", "filepath shade batch square")
 
 
 def main():
@@ -37,32 +38,45 @@ def main():
     input_directory = os.path.expanduser(args.input_directory)
     output_directory = os.path.expanduser(args.output_directory)
     report_filename = os.path.expanduser(args.report_filename)
+    parallel = args.parallel
+    batches = args.batches
 
     # Process source
     if os.path.isdir(input_directory) is False:
-        print('''\
-Source directory '{}' does not exist.'''.format(input_directory))
+        print(
+            """\
+Source directory '{}' does not exist.""".format(
+                input_directory
+            )
+        )
         sys.exit(0)
 
     # Process destination
     if os.path.isdir(input_directory) is False:
-        print('''\
-Destination directory '{}' does not exist.'''.format(input_directory))
+        print(
+            """\
+Destination directory '{}' does not exist.""".format(
+                input_directory
+            )
+        )
         sys.exit(0)
 
     # Get filepaths
     filepaths = _filepaths(input_directory)
 
     # Process
-    evaluations = _evaluate(filepaths)
-    batches = _batch(evaluations)
-    _report(batches, report_filename)
-    _librarian(batches, output_directory)
+    evaluations = _evaluate(filepaths, parallel=parallel, batches=batches)
+    batched_evaluations = _batch(evaluations, batches=batches)
+    _report(batched_evaluations, report_filename)
+    if bool(output_directory) is True:
+        _librarian(batched_evaluations, output_directory)
 
     # Get a clear CLI prompt
-    print('Processed : {1} files\nDuration  : {0}s\nOutput    : {2}'.format(
-        round(time.time() - start, 2), len(evaluations), report_filename)
+    print(
+        "Processed : {1} files\nDuration  : {0}s\nOutput    : {2}".format(
+            round(time.time() - start, 2), len(evaluations), report_filename
         )
+    )
 
 
 def _librarian(records, output_directory):
@@ -79,13 +93,15 @@ def _librarian(records, output_directory):
     # Copy files
     for record in records:
         # Create batch directory tree if necessary
-        batch_directory = '{0}{1}photo_book{1}{2}'.format(
-            output_directory, os.sep, str(record.batch).zfill(3))
+        batch_directory = "{0}{1}photo_book{1}{2}".format(
+            output_directory, os.sep, str(record.batch).zfill(3)
+        )
         if os.path.isdir(batch_directory) is False:
             os.makedirs(batch_directory, exist_ok=True)
 
-        dst = '{}{}{}'.format(
-            batch_directory, os.sep, os.path.basename(record.filepath))
+        dst = "{}{}{}".format(
+            batch_directory, os.sep, os.path.basename(record.filepath)
+        )
         shutil.copyfile(record.filepath, dst)
 
 
@@ -101,17 +117,23 @@ def _report(records, output_filename):
 
     """
     # Create the CSV file
-    with open(output_filename, 'w') as fh_:
-        writer = csv.writer(fh_, delimiter=',')
-        writer.writerow(['Batch', 'Filename', 'Shade'])
+    with open(output_filename, "w") as fh_:
+        writer = csv.writer(fh_, delimiter=",")
+        writer.writerow(["Batch", "Filename", "Shade", "Square"])
 
         # Write file data
         for record in records:
-            writer.writerow([
-                record.batch, os.path.basename(record.filepath), record.shade])
+            writer.writerow(
+                [
+                    record.batch,
+                    os.path.basename(record.filepath),
+                    record.shade,
+                    "Yes" if bool(record.square) else "No",
+                ]
+            )
 
 
-def _batch(items, batch=10):
+def _batch(items, batches=10):
     """Create batches of records for processing.
 
     Args:
@@ -122,37 +144,36 @@ def _batch(items, batch=10):
 
     """
     # Initialize key variables
-    records = sorted(items, key=attrgetter('shade'))
-    batch_size = int(len(records) / batch)
+    MinMax = namedtuple("MinMax", "min max")
+    records = sorted(items, key=attrgetter("shade"))
     results = []
-    count = 0
-    batch = 0
+    ranges = [MinMax(min=_ - 1, max=_) for _ in list(range(1, batches + 1))]
 
     # Process records
     for record in records:
-        # Write the batch number
-        if count == 0:
-            batch += 1
-
-        # Update batch information
-        results.append(
-            Batch(filepath=record.filepath, shade=record.shade, batch=batch)
-        )
-        count += 1
-
-        # Reset the count
-        if count == batch_size:
-            count = 0
+        for key, value in enumerate(ranges):
+            if value.min < record.shade <= value.max:
+                # Update batch information
+                results.append(
+                    Batch(
+                        filepath=record.filepath,
+                        shade=record.shade,
+                        batch=key + 1,
+                        square=record.square,
+                    )
+                )
 
     # Return
     return results
 
 
-def _evaluate(filepaths):
+def _evaluate(filepaths, parallel=True, batches=10):
     """Evaluate the shading of files.
 
     Args:
         filepaths: List of filepaths to evaluate
+        parallel: Use parallel processing if True
+        batches: Number of batches for the grouping
 
     Returns:
         results: List of Shade objects
@@ -163,34 +184,46 @@ def _evaluate(filepaths):
     cores = int(os.cpu_count() * 0.8)
 
     # Process the filepaths
-    with Pool(processes=cores) as pool:
-        tuples = pool.map(_shading, filepaths)
+    if bool(parallel) is True:
+        with get_context("spawn").Pool(processes=cores) as pool:
+            arguments = [(filepath, batches) for filepath in filepaths]
+            results = pool.starmap(_shading, arguments)
+    else:
+        for filepath in filepaths:
+            listing = _shading(filepath)
+            if bool(listing) is True:
+                results.extend(listing)
 
     # Return
-    results = [Shade(filepath=_[0], shade=_[1]) for _ in tuples]
     return results
 
 
-def _shading(filepath):
+def _shading(filepath, batches=10):
     """Evaluate the shading of files.
 
     Args:
         filepath: File to evaluate
+        batches: Number of batches for the grouping
 
     Returns:
-        result: Value of shading
+        result: Value of Shade
 
     """
     # Initialize key variables
-    RGB = namedtuple('RGB', 'red blue green')
+    RGB = namedtuple("RGB", "red blue green")
     image = Image.open(filepath)
     pixels = image.load()
     shades = []
 
-    # Process image
+    # Process the file
     for row in range(image.width):
         for column in range(image.height):
-            rgb = pixels[column, row]
+            # Try block to protect against bad metadata
+            try:
+                rgb = pixels[column, row]
+            except:
+                continue
+
             pixel = RGB(red=rgb[0], blue=rgb[1], green=rgb[2])
 
             # Ignore pure white, which could be a border
@@ -199,28 +232,14 @@ def _shading(filepath):
 
             # Calculate the mean value
             shades.append(
-                _shade([pixel.red, pixel.blue, pixel.green])
+                statistics.mean([pixel.red, pixel.blue, pixel.green])
             )
 
     # Make shade value between 0 and 10
-    shade = round(_shade(shades) / 25.5, 2)
-    return (filepath, shade)
-
-
-def _shade(values, decimals=2):
-    """Get shade value.
-
-    Args:
-        values: List of shade values
-        decimals: Decimal place rounding
-
-    Returns:
-        result: Mean shade value
-
-    """
-    mean = sum(values) / len(values)
-    result = round(mean, decimals)
-    return result
+    shade = round(statistics.mean(shades) / (255 / batches), 2)
+    return Shade(
+        filepath=filepath, shade=shade, square=image.width == image.height
+    )
 
 
 def _filepaths(source):
@@ -240,7 +259,7 @@ def _filepaths(source):
     files = os.listdir(source)
     for filename in sorted(files):
         # Only interested in files
-        filepath = '{}{}{}'.format(source, os.sep, filename)
+        filepath = "{}{}{}".format(source, os.sep, filename)
         if _valid_file(filepath) is True:
             result.append(filepath)
 
@@ -283,12 +302,13 @@ def _filetype(filepath):
 
     """
     # Initialize key variables
-    FileType = namedtuple('FileType', 'jpg unsupported')
+    FileType = namedtuple("FileType", "jpg unsupported")
     result = FileType(jpg=False, unsupported=True)
 
     # Determine the type of file
-    if filepath.lower().endswith('.jpg') is True or (
-            filepath.lower().endswith('.jpeg') is True):
+    if filepath.lower().endswith(".jpg") is True or (
+        filepath.lower().endswith(".jpeg") is True
+    ):
         result = FileType(jpg=True, unsupported=False)
     return result
 
@@ -306,20 +326,34 @@ def _args():
     # Process CLI options
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--input_directory',
+        "--input_directory",
         required=True,
         type=str,
-        help='Directory containing JPG files to process.')
+        help="Directory containing JPG files to process.",
+    )
     parser.add_argument(
-        '--output_directory',
-        required=True,
+        "--output_directory",
+        default="",
         type=str,
-        help='Directory where batched JPG files will be copied.')
+        help="Directory where batched JPG files will be copied.",
+    )
     parser.add_argument(
-        '--report_filename',
+        "--report_filename",
         type=str,
-        default='/tmp/bw_jpg_shade_ranking.csv',
-        help='CSV file for results.')
+        default="/tmp/bw_jpg_shade_ranking.csv",
+        help="CSV file for results.",
+    )
+    parser.add_argument(
+        "--batches",
+        type=int,
+        default=10,
+        help="Number of batches to create. Default = 10",
+    )
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Use multiprocessing.",
+    )
     result = parser.parse_args()
     return result
 
