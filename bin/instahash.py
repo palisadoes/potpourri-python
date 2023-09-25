@@ -220,7 +220,7 @@ def report(
     # Initialize key variables
     results = []
     hashtags = []
-    mandatory_tags = ["p3terharrisoncatalog"]
+    mandatory_tags = ["#p3terharrisoncatalog"]
 
     # Get results for both hashtag types
     features = FeatureHashtags(rows, limit=limit).rows
