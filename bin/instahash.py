@@ -13,7 +13,7 @@ import random
 import re
 from operator import attrgetter
 
-LIMIT_MAX = 25
+LIMIT_MAX = 10
 
 
 class Hashtags:
@@ -167,7 +167,8 @@ def main():
     limit = abs(args.results)
     percent = abs(args.percent)
     verbose = args.verbose
-    additions = _additions(args.additions)
+    includes = _includes(args.includes)
+    excludes = _excludes(args.excludes)
 
     # Add limits to the CLI parameters
     percent = percent if 0 <= percent <= 100 else 25
@@ -196,13 +197,19 @@ def main():
         rows,
         limit=limit,
         feature_percent=percent,
-        additions=additions,
+        includes=includes,
+        excludes=excludes,
         verbose=verbose,
     )
 
 
 def report(
-    rows, limit=LIMIT_MAX, feature_percent=25, additions=None, verbose=False
+    rows,
+    limit=LIMIT_MAX,
+    feature_percent=25,
+    includes=None,
+    excludes=None,
+    verbose=False,
 ):
     """Process data.
 
@@ -210,7 +217,8 @@ def report(
         rows: List of Row objects
         limit: The number of rows to select
         feature_percent: Percentage of hashtags from feature accounts
-        additions: List of hashtags to add
+        includes: List of hashtags to add
+        excluded: List of banned words in hashtags
         verbose: Verbose output if True
 
     Returns:
@@ -253,12 +261,12 @@ def report(
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
 
-    # Trim hashtag list before additions
+    # Trim hashtag list before includes
     hashtags = hashtags[:limit]
 
     # Add any additionally requested hashtags
-    if isinstance(additions, list):
-        for item in additions:
+    if isinstance(includes, list):
+        for item in includes:
             if isinstance(item, str):
                 if item.startswith("#"):
                     hashtags.insert(0, item)
@@ -270,10 +278,15 @@ def report(
     # Remove duplicates
     hashtags = list(set(hashtags))
 
+    # Remove banned items
+    if isinstance(excludes, list):
+        for item in excludes:
+            hashtags = [_ for _ in hashtags if item.lower() not in _]
+
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
 
-    # Trim hashtag list after additions
+    # Trim hashtag list after includes
     hashtags = hashtags[:LIMIT_MAX]
 
     # Print results
@@ -282,11 +295,11 @@ def report(
     print("\n\n{}{}\n".format(".\n" * 5, " ".join(output)))
 
 
-def _additions(additions):
+def _includes(includes):
     """Create list of additional hashtags to use.
 
     Args:
-        additions
+        includes
 
     Returns:
         result: List of hashtags
@@ -295,15 +308,42 @@ def _additions(additions):
     # Initialize key variables
     result = []
 
-    if bool(additions) is True:
-        for addition in additions:
+    if bool(includes) is True:
+        for include in includes:
             # Split on word boundaries, including commas
-            hashtags = re.findall(r"[\w']+", addition)
+            hashtags = re.findall(r"[\w']+", include)
 
             # Add hashtags
             for hashtag in hashtags:
                 if bool(re.match(r"^\w+$", hashtag).group(0)) is True:
                     result.append("#{}".format(hashtag.lower()))
+
+    # Return
+    return result
+
+
+def _excludes(excludes):
+    """Create list of additional hashtags to use.
+
+    Args:
+        excludes
+
+    Returns:
+        result: List of words to exclude
+
+    """
+    # Initialize key variables
+    result = []
+
+    if bool(excludes) is True:
+        for exclude in excludes:
+            # Split on word boundaries, including commas
+            hashtags = re.findall(r"[\w']+", exclude)
+
+            # Add hashtags
+            for hashtag in hashtags:
+                if bool(re.match(r"^\w+$", hashtag).group(0)) is True:
+                    result.append(hashtag.lower())
 
     # Return
     return result
@@ -338,11 +378,19 @@ def _args():
         ),
     )
     parser.add_argument(
-        "--additions",
+        "--includes",
         type=str,
         required=False,
         nargs="+",
         help="List of mandatory hashtags to add.",
+    )
+    parser.add_argument(
+        "--excludes",
+        type=str,
+        required=False,
+        nargs="+",
+        help="List of words that if found in a hashtag"
+        " will cause the hashtag to be ignored.",
     )
     parser.add_argument(
         "--results",
