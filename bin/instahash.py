@@ -261,6 +261,11 @@ def report(
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
 
+    # Remove banned items
+    if isinstance(excludes, list):
+        for item in excludes:
+            hashtags = [_ for _ in hashtags if item.lower() not in _]
+
     # Trim hashtag list before includes
     hashtags = hashtags[:limit]
 
@@ -277,11 +282,6 @@ def report(
 
     # Remove duplicates
     hashtags = list(set(hashtags))
-
-    # Remove banned items
-    if isinstance(excludes, list):
-        for item in excludes:
-            hashtags = [_ for _ in hashtags if item.lower() not in _]
 
     # Shuffle hashtags to hide methodology
     random.shuffle(hashtags)
