@@ -13,14 +13,12 @@ import time
 import random
 import csv
 
+# PIP imports
+
 # Try to create a working PYTHONPATH
 _BIN_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-_ROOT_DIRECTORY = os.path.abspath(
-    os.path.join(
-        os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir)), os.pardir
-    )
-)
-_EXPECTED = f"{os.sep}potpourri-python{os.sep}bin{os.sep}rain"
+_ROOT_DIRECTORY = os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir))
+_EXPECTED = f"{os.sep}potpourri-python{0}bin"
 if _BIN_DIRECTORY.endswith(_EXPECTED) is True:
     sys.path.append(_ROOT_DIRECTORY)
 else:
@@ -33,7 +31,7 @@ This script is not installed in the "{_EXPECTED}" directory. Please fix.\
 
 # Library imports
 from rain import log
-from rain import config as _config
+from rain import config
 
 
 class Org:
@@ -221,7 +219,7 @@ def main():
 
     # Get the CLI arguments
     args = cli()
-    config = _config.Config(args.config_file)
+    _config = config.Config(args.config_file)
 
     # Log start
     log_message = "Starting Job"
@@ -229,11 +227,11 @@ def main():
 
     # Get URLs from file
     filepath = os.path.abspath(os.path.expanduser(args.html_file))
-    urls = get_urls(config, filepath)
+    urls = get_urls(filepath)
 
     # Process Contact
     with open(
-        config.scraper_output_file(), "w", newline="", encoding="utf-8"
+        _config.scraper_output_file(), "w", newline="", encoding="utf-8"
     ) as fh_:
         linewriter = csv.writer(
             fh_, delimiter="\t", quotechar="|", quoting=csv.QUOTE_MINIMAL
@@ -343,11 +341,10 @@ def get_data(url):
     return result
 
 
-def get_urls(config, filepath):
+def get_urls(filepath):
     """Extract URLs from file.
 
     Args:
-        config: Configuration object
         filepath: File to process.
 
     Returns:
@@ -365,7 +362,7 @@ def get_urls(config, filepath):
 
     # Extract codes
     for line in lines:
-        if config.scraper_query_url() in line:
+        if "https://search.ar" "in.net/rdap?query" in line:
             # Extract code
             status = regex.match(line)
             if bool(status.group()):
@@ -373,7 +370,12 @@ def get_urls(config, filepath):
 
     # Create list of URLs
     for code in codes:
-        result.append(f"""{config.scraper_entity_url()}/{code}""")
+        result.append(
+            f"""\
+https://rd\
+ap.ar\
+in.net/registry/entity/{code}"""
+        )
 
     # Randomly shuffle the URLs
     random.shuffle(result)

@@ -9,24 +9,17 @@ import sys
 
 # Try to create a working PYTHONPATH
 _BIN_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-_ROOT_DIRECTORY = os.path.abspath(
-    os.path.join(
-        os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir)), os.pardir
-    )
-)
-_EXPECTED = f"{os.sep}potpourri-python{os.sep}bin{os.sep}rain"
+_ROOT_DIRECTORY = os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir))
+_EXPECTED = '{0}potpourri-python{0}bin'.format(os.sep)
 if _BIN_DIRECTORY.endswith(_EXPECTED) is True:
     sys.path.append(_ROOT_DIRECTORY)
 else:
-    print(
-        f"""\
-This script is not installed in the "{_EXPECTED}" directory. Please fix.\
-"""
-    )
+    print('''This script is not installed in the "{0}" directory. Please fix.\
+'''.format(_EXPECTED))
     sys.exit(2)
 
-
 # Library imports
+from rain.mailer import Person, MailAuth, Mail
 from rain.mailer import email as lib_email
 from rain import log
 from rain.mailer import humans
@@ -41,20 +34,16 @@ def main():
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
     cache_directory = os.path.abspath(os.path.expanduser(args.cache_directory))
-    attachment = (
-        os.path.abspath(os.path.expanduser(args.attachment))
-        if bool(args.attachment)
-        else None
-    )
+    attachment = os.path.abspath(
+        os.path.expanduser(args.attachment)) if bool(args.attachment) else None
 
     # Determine the output filename
     _campaign = lib_email.campaign_files(
-        args.campaign, cache_directory=cache_directory
-    )
+        args.campaign, cache_directory=cache_directory)
     output_file = _campaign.thunderbird_file
 
     # Log start
-    log_message = "Starting Thunderbird file creation job"
+    log_message = 'Starting Thunderbird file creation job'
     log.log2debug(6000, log_message)
 
     # Get human records
@@ -63,20 +52,15 @@ def main():
 
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
-        args.campaign,
-        body_file,
-        args.subject,
-        args.sender,
-        cache_directory=cache_directory,
-        attachment=attachment,
-    )
+        args.campaign, body_file, args.subject,
+        args.sender, cache_directory=cache_directory, attachment=attachment)
 
     # Process Everyone
-    label(output_file, "Everyone Email")
+    label(output_file, 'Everyone Email')
     generator(thunderbird, everyone)
 
     # Log stop
-    log_message = "Thunderbird file creation job complete"
+    log_message = 'Thunderbird file creation job complete'
     log.log2debug(6001, log_message)
 
 
@@ -91,8 +75,8 @@ def label(filename, label_):
         None
     """
     # Write to output file
-    with open(filename, "a", encoding="utf-8") as fh_:
-        fh_.write(f"# {label_.upper()}\n")
+    with open(filename, 'a') as fh_:
+        fh_.write('# {}\n'.format(label_.upper()))
 
 
 def generator(thunderbird, persons):
@@ -130,56 +114,39 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--subject",
-        type=str,
-        required=True,
-        help="Subject of email to be sent.",
-    )
+        '--subject', type=str, required=True,
+        help='Subject of email to be sent.')
     parser.add_argument(
-        "--sender",
-        type=str,
-        required=True,
-        help="""\
+        '--sender', type=str, required=True,
+        help='''\
 Thunderbird sender in format "Firstname Lastname <email@example.com>". When \
 the Thunderbird client has more than one account, this information is used \
-to determine the account to use when sending.""",
-    )
+to determine the account to use when sending.''')
     parser.add_argument(
-        "--human_file",
-        type=str,
-        required=True,
-        help="TSV file containing contact names and emails only.",
-    )
+        '--human_file', type=str, required=True,
+        help='TSV file containing contact names and emails only.')
     parser.add_argument(
-        "--body_file",
-        type=str,
-        required=True,
-        help="""\
+        '--body_file', type=str, required=True,
+        help='''\
 HTML file containing the message to be sent. This file contain the string \
-"XXXXXXXXXX" to allow the easy search and replace of the contact name.""",
-    )
+"XXXXXXXXXX" to allow the easy search and replace of the contact name.''')
     parser.add_argument(
-        "--campaign",
-        type=str,
-        required=True,
-        help="""\
+        '--campaign', type=str, required=True,
+        help='''\
 Name of the email campaign. This is used to create a history file to help \
 prevent duplicate Thunderbird command entries when repeatedly running \
-this script. It is also used to generate the Thunderbird output file name.""",
-    )
+this script. It is also used to generate the Thunderbird output file name.''')
     parser.add_argument(
-        "--cache_directory",
-        type=str,
-        help="Cache directory where campaign files are stored.",
-    )
+        '--cache_directory', type=str,
+        help='Cache directory where campaign files are stored.')
     parser.add_argument(
-        "--attachment", type=str, help="Name of file to attach to emails."
-    )
+        '--attachment', type=str,
+        help='Name of file to attach to emails.')
 
     # Parse and return
     args = parser.parse_args()
     return args
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
