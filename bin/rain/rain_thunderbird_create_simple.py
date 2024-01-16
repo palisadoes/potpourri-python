@@ -27,9 +27,10 @@ This script is not installed in the "{_EXPECTED}" directory. Please fix.\
 
 
 # Library imports
-from rain.mailer import email as lib_email
-from rain import log
-from rain.mailer import humans
+from rain.Y2024.mailer import email as lib_email
+from rain.Y2024 import log
+from rain.Y2024.mailer import humans
+from rain.Y2024 import config as _config
 
 
 def main():
@@ -40,18 +41,17 @@ def main():
     args = cli()
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
-    cache_directory = os.path.abspath(os.path.expanduser(args.cache_directory))
     attachment = (
         os.path.abspath(os.path.expanduser(args.attachment))
         if bool(args.attachment)
         else None
     )
 
-    # Determine the output filename
-    _campaign = lib_email.campaign_files(
-        args.campaign, cache_directory=cache_directory
-    )
-    output_file = _campaign.thunderbird_file
+    # Create a config object
+    config = _config.Config(args.config_file)
+
+    # Create a campaign object
+    campaign = _config.campaign(config, args.campaign_name)
 
     # Log start
     log_message = "Starting Thunderbird file creation job"
@@ -63,58 +63,19 @@ def main():
 
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
-        args.campaign,
+        campaign,
         body_file,
         args.subject,
         args.sender,
-        cache_directory=cache_directory,
         attachment=attachment,
     )
 
     # Process Everyone
-    label(output_file, "Everyone Email")
-    generator(thunderbird, everyone)
+    thunderbird.generate(everyone, label="Everyone Email")
 
     # Log stop
     log_message = "Thunderbird file creation job complete"
     log.log2debug(6001, log_message)
-
-
-def label(filename, label_):
-    """Add label comment to file.
-
-    Args:
-        filename: Name of file
-        label_: Label to write
-
-    Returns:
-        None
-    """
-    # Write to output file
-    with open(filename, "a", encoding="utf-8") as fh_:
-        fh_.write(f"# {label_.upper()}\n")
-
-
-def generator(thunderbird, persons):
-    """Generate thunderbird entries for Person.
-
-    Args:
-        thunderbird: email.Thunderbird object
-        persons: List of person objects
-
-    Returns:
-        None
-    """
-    # Initialize key variables
-    uniques = {}
-
-    # Create a unique list of persons
-    for person in persons:
-        uniques[person.email] = person
-    targets = list(uniques.values())
-
-    # Update files
-    thunderbird.append(targets)
 
 
 def cli():
@@ -159,7 +120,7 @@ HTML file containing the message to be sent. This file contain the string \
 "XXXXXXXXXX" to allow the easy search and replace of the contact name.""",
     )
     parser.add_argument(
-        "--campaign",
+        "--campaign_name",
         type=str,
         required=True,
         help="""\
@@ -168,12 +129,13 @@ prevent duplicate Thunderbird command entries when repeatedly running \
 this script. It is also used to generate the Thunderbird output file name.""",
     )
     parser.add_argument(
-        "--cache_directory",
-        type=str,
-        help="Cache directory where campaign files are stored.",
+        "--attachment", type=str, help="Name of file to attach to emails."
     )
     parser.add_argument(
-        "--attachment", type=str, help="Name of file to attach to emails."
+        "--config_file",
+        type=str,
+        required=True,
+        help="Name of the configuration file.",
     )
 
     # Parse and return

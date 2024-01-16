@@ -27,10 +27,11 @@ This script is not installed in the "{_EXPECTED}" directory. Please fix.\
 
 
 # Library imports
-from rain.mailer import email as lib_email
-from rain import log
-from rain import misc
-from rain.mailer import humans
+from rain.Y2024.mailer import email as lib_email
+from rain.Y2024 import log
+from rain.Y2024 import misc
+from rain.Y2024.mailer import humans
+from rain.Y2024 import config as _config
 
 
 def main():
@@ -42,20 +43,16 @@ def main():
     args = cli()
     human_file = os.path.abspath(os.path.expanduser(args.human_file))
     body_file = os.path.abspath(os.path.expanduser(args.body_file))
-    if bool(args.cache_directory):
-        cache_directory = os.path.abspath(
-            os.path.expanduser(args.cache_directory)
-        )
 
     # Get timestamp
     if bool(args.date) is True:
         timestamp = misc.timestamp(args.date)
 
-    # Determine the output filename
-    _campaign = lib_email.campaign_files(
-        args.campaign, cache_directory=cache_directory
-    )
-    output_file = _campaign.thunderbird_file
+    # Create a config object
+    config = _config.Config(args.config_file)
+
+    # Create a campaign object
+    campaign = _config.campaign(config, args.campaign_name)
 
     # Log start
     log_message = "Starting Thunderbird file creation job"
@@ -68,94 +65,49 @@ def main():
     # Filter persons
     strainer_ = humans.Strainer(everyone)
 
-    # for i in strainer_.smallfry(individuals_only=True):
-    #     print(i)
-    # sys.exit()
-
     # Create object for generating emails
     thunderbird = lib_email.Thunderbird(
-        args.campaign,
+        campaign,
         body_file,
         args.subject,
         args.sender,
-        cache_directory=cache_directory,
     )
 
     # process Anglophone organizations
     if not args.spanish:
         # Process GOATs
-        # label(output_file, 'Goats')
-        # goats = humans.goats(humans_)
-        # generator(thunderbird, goats)
-        #
-        # # Process Caribbean
-        # label(output_file, 'Caribbean')
-        # generator(thunderbird, strainer_.caribbean())
+        people = humans.goats(humans_)
+        thunderbird.generate(people, label="Goats")
+
+        # Process Caribbean
+        people = strainer_.caribbean()
+        thunderbird.generate(people, label="Caribbean")
 
         # Process Educational
-        label(output_file, "Educational")
-        generator(thunderbird, strainer_.edu(individuals_only=True))
+        people = strainer_.edu(individuals_only=True)
+        thunderbird.generate(people, label="Educational")
 
         # Process states/provinces with few organizations
-        label(output_file, "SmallFry")
-        generator(
-            thunderbird, strainer_.smallfry(individuals_only=True, strict=True)
-        )
+        people = strainer_.smallfry(individuals_only=True, strict=True)
+        thunderbird.generate(people, label="SmallFry")
 
     # Process state
     if bool(args.states) is True:
         for state in args.states.split(","):
             # Update the stuff
-            label(output_file, state.upper())
-            citizens = strainer_.state(
+            people = strainer_.state(
                 state.upper(),
                 individuals_only=not bool(args.teams),
                 timestamp=timestamp,
                 strict=True,
             )
-            generator(thunderbird, citizens, spanish=args.spanish)
+            thunderbird.generate(
+                people, label=state.upper(), spanish=args.spanish
+            )
 
     # Log stop
     log_message = "Thunderbird file creation job complete"
     log.log2debug(4001, log_message)
-
-
-def label(filename, label_):
-    """Add label comment to file.
-
-    Args:
-        filename: Name of file
-        label_: Label to write
-
-    Returns:
-        None
-    """
-    # Write to output file
-    with open(filename, "a", encoding="utf-8") as fh_:
-        fh_.write(f"# {label_.upper()}\n")
-
-
-def generator(thunderbird, persons, spanish=False):
-    """Generate thunderbird entries for Person.
-
-    Args:
-        thunderbird: email.Thunderbird object
-        persons: List of person objects
-        spanish: True if spanish greeting is required
-
-    Returns:
-        None
-    """
-    # Initialize key variables
-    uniques = {}
-
-    # Create a unique list of persons
-    for person in persons:
-        uniques[person.email] = person
-    targets = list(uniques.values())
-
-    # Update files
-    thunderbird.append(targets, spanish=spanish)
 
 
 def cli():
@@ -209,11 +161,6 @@ prevent duplicate Thunderbird command entries when repeatedly running \
 this script. It is also used to generate the Thunderbird output file name.""",
     )
     parser.add_argument(
-        "--cache_directory",
-        type=str,
-        help="Cache directory where campaign files are stored.",
-    )
-    parser.add_argument(
         "--states",
         type=str,
         help="""\
@@ -231,6 +178,12 @@ Names of states to include when generating Thunderbird email lists""",
         "--teams",
         help="Process both teams and individuals when specifying states.",
         action="store_true",
+    )
+    parser.add_argument(
+        "--config_file",
+        type=str,
+        required=True,
+        help="Name of the configuration file.",
     )
 
     # Parse and return

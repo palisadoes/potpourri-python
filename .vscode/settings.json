@@ -17,4 +17,17 @@
         "!less",
         "!python"
     ],
+    "flake8.interpreter": [
+        "/usr/bin/python3"
+    ],
+    "flake8.path": [
+        "/usr/bin/flake8"
+    ],
+    "pylint.interpreter": [
+        "/usr/bin/python3"
+    ],
+    "pylint.args": [
+        "--disable=C0413",
+        "--disable=W0702"
+    ],
 }

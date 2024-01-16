@@ -32,8 +32,8 @@ This script is not installed in the "{_EXPECTED}" directory. Please fix.\
     sys.exit(2)
 
 # Library imports
-from rain import log
-from rain import config as _config
+from rain.Y2024 import log
+from rain.Y2024 import config as _config
 
 
 class Org:
@@ -392,8 +392,18 @@ def cli():
     """
     # Initialize key variables
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config_file", type=str, required=True)
-    parser.add_argument("--html_file", type=str, required=True)
+    parser.add_argument(
+        "--config_file",
+        type=str,
+        required=True,
+        help="Name of the configuration file.",
+    )
+    parser.add_argument(
+        "--html_file",
+        type=str,
+        required=True,
+        help="Name of the data source HTML file.",
+    )
 
     # Parse and return
     args = parser.parse_args()

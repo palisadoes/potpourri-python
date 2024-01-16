@@ -1,0 +1,16 @@
+"""Global variables for library."""
+
+from collections import namedtuple
+
+Person = namedtuple(
+    "Person",
+    """firstname lastname email country state individual validated \
+organization organization_updated""",
+)
+Mail = namedtuple("Mail", "sender receiver subject image body")
+MailAuth = namedtuple("MailAuth", "username password")
+
+Campaign = namedtuple(
+    "Campaign",
+    "history_file thunderbird_file campaign cache_directory",
+)
