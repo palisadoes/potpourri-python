@@ -87,7 +87,7 @@ def cli():
     # Initialize key variables
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--campaign",
+        "--campaign_name",
         type=str,
         required=True,
         help="""\
@@ -95,9 +95,9 @@ Name of the email campaign. This is used to determine the name of the \
 Thunderbird file to ingest.""",
     )
     parser.add_argument(
-        "--cache_directory",
+        "--config_file",
         type=str,
-        help="Cache directory where campaign files are stored.",
+        help="Name of the configuration file.",
     )
 
     # Parse and return
