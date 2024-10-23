@@ -28,7 +28,7 @@ This script is not installed in the "{_EXPECTED}" directory. Please fix.\
 # Library imports
 from rain.Y2024.mailer import Person, MailAuth, Mail
 from rain.Y2024.mailer import email as lib_email
-from rain import log
+from rain.Y2024 import log
 from rain import misc
 from rain.Y2024.mailer import humans
 
