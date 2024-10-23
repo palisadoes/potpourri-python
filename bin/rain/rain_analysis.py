@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Creates a file containing a list of Thunderbird CLI email commands."""
+"""Counts the number of human file entries per state."""
 
 # Standard imports
 import argparse
