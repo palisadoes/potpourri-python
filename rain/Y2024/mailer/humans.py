@@ -236,12 +236,12 @@ class Strainer():
                         result.append(person)
         return result
 
-    def smallfry(self, individuals_only=False, threshold=30, strict=False):
+    def smallfry(self, individuals_only=False, threshold=70, strict=False):
         """Return all persons related to educational institutions.
 
         Args:
             individuals_only: Only return individuals if True
-            threshold: Only process states with at least this number of orgs.
+            threshold: Only process states with at most this number of orgs.
             strict: Only privately held organizations if True.
 
         Returns:
@@ -570,12 +570,12 @@ def _email_ok(email):
     return result
 
 
-def goats(humans_):
+def goats(humans_, limit=3):
     """Generate mailtos for GOATs.
 
     Args:
-        mailto: email.Thunderbird object
-        persons: List of person objects
+        humans: Humans object
+        limit: Number of entries to qualify as a GOAT
 
     Returns:
         None
@@ -603,7 +603,7 @@ def goats(humans_):
     for email, count in sorted(
             counter.items(), key=lambda item: item[1], reverse=True):
         # print(email)
-        if count > 1:
+        if count >= limit:
             print('{:<50}: {}'.format(email, count))
 
             # Get the most popular company name

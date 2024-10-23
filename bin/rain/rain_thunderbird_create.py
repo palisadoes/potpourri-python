@@ -152,7 +152,7 @@ HTML file containing the message to be sent. This file contain the string \
 "XXXXXXXXXX" to allow the easy search and replace of the contact name.""",
     )
     parser.add_argument(
-        "--campaign",
+        "--campaign_name",
         type=str,
         required=True,
         help="""\
