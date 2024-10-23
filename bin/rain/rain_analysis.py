@@ -9,13 +9,20 @@ import sys
 
 # Try to create a working PYTHONPATH
 _BIN_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-_ROOT_DIRECTORY = os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir))
-_EXPECTED = '{0}potpourri-python{0}bin'.format(os.sep)
+_ROOT_DIRECTORY = os.path.abspath(
+    os.path.join(
+        os.path.abspath(os.path.join(_BIN_DIRECTORY, os.pardir)), os.pardir
+    )
+)
+_EXPECTED = f"{os.sep}potpourri-python{os.sep}bin{os.sep}rain"
 if _BIN_DIRECTORY.endswith(_EXPECTED) is True:
     sys.path.append(_ROOT_DIRECTORY)
 else:
-    print('''This script is not installed in the "{0}" directory. Please fix.\
-'''.format(_EXPECTED))
+    print(
+        f"""\
+This script is not installed in the "{_EXPECTED}" directory. Please fix.\
+"""
+    )
     sys.exit(2)
 
 # Library imports
