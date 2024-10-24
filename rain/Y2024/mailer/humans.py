@@ -236,7 +236,7 @@ class Strainer():
                         result.append(person)
         return result
 
-    def smallfry(self, individuals_only=False, threshold=70, strict=False):
+    def smallfry(self, individuals_only=False, threshold=40, strict=False):
         """Return all persons related to educational institutions.
 
         Args:
@@ -448,11 +448,11 @@ def _is_individual(firstname, lastname, email, contact_kind):
         'number', 'division', 'manag', 'ar''in', 'ops', 'whois', 'ceo', 'test',
         'officer', 'cloud', 'president', 'owner', 'purchasing', 'help', 'desk',
         'infra', 'billing', 'ltd', 'partner', 'registr', 'albuquerque',
-        'legal', 'corp', 'founder', 'domain', 'internet', 'analyst', 'licence',
+        'corp', 'founder', 'domain', 'internet', 'analyst', 'licence',
         'ciso', 'office', 'operator', 'procure', 'register', 'notify', 'poc',
         'ipaddr', 'isp', 'pilot', 'company', 'peer', 'coord', 'info@',
         'scanning', 'routing', 'staff', 'internet', 'connect', 'allocation']
-    names = ['abuse']
+    names = ['abuse', 'legal']
 
     # Check strings that should only appear in people and department names
     for item in departments:
