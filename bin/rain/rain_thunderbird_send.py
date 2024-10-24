@@ -36,6 +36,7 @@ def main():
     # Initialize key variables
     count = 0
     interval = 5
+    response = ''
 
     # Get the CLI arguments
     args = cli()
@@ -67,7 +68,11 @@ def main():
             _ = process.returncode
 
         if count % interval == 0:
-            input("Press any key to continue...")
+            response = input("Press any key to continue...")
+        
+            # Test result
+            if bool(response.strip()) is True:
+                break
 
     # Log stop
     log_message = "Thunderbird sending job complete"
