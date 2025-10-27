@@ -95,7 +95,7 @@ Destination directory '{}' does not exist.'''.format(destination))
         original = _new_dimensions(
             filepath, ig_width=ig_width, border=border)
         resized = original.image.resize(
-            (original.width, original.height), Image.ANTIALIAS)
+            (original.width, original.height), Image.LANCZOS)
         resized = ImageOps.expand(resized, border=1)
 
         # Overlay source image on background and save
